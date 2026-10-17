@@ -19,19 +19,19 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5005',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5005',
         changeOrigin: true,
       },
       '/sitemap.xml': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5005',
         changeOrigin: true,
       },
       '/robots.txt': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5005',
         changeOrigin: true,
       }
     }
