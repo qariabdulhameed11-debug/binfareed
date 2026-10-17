@@ -49,7 +49,10 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
       env.FRONTEND_URL,
       'http://localhost:5173',
       'http://127.0.0.1:5173',
+      'http://localhost:5174',
+      'http://127.0.0.1:5174',
       'http://localhost:5000',
+      'http://localhost:5005',
     ];
     if (allowedOrigins.includes(origin)) {
       return next();
