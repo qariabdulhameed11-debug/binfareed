@@ -68,6 +68,10 @@
         <div class="bfs-count"><span id="bfs-pct">1</span><small>%</small></div>
         <div class="bfs-rule"><span id="bfs-bar"></span></div>
         <p class="bfs-cap" id="bfs-cap">Entering the Watch World</p>
+        <button id="bfs-sound-btn" class="bfs-sound-btn" type="button" aria-label="Play sound">
+          <span id="bfs-sound-icon">🔊</span>
+          <span id="bfs-sound-label">Tap for sound</span>
+        </button>
       </div>
     </div>
     <style>
@@ -90,6 +94,10 @@
       .bfs-rule span{display:block;height:100%;width:1%;background:linear-gradient(90deg,transparent,#F4DFA8,#C5A059);box-shadow:0 0 10px rgba(223,189,120,.8)}
       .bfs-cap{margin:0;min-height:1.4em;font:500 10px/1.4 'Plus Jakarta Sans',system-ui,sans-serif;letter-spacing:.38em;text-transform:uppercase;color:rgba(244,223,168,.78);transition:opacity .35s ease,transform .35s ease}
       .bfs-cap.swap{opacity:0;transform:translateY(6px)}
+      .bfs-sound-btn{margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(197,160,89,.15);border:1px solid rgba(197,160,89,.45);border-radius:9999px;color:#F4DFA8;font:500 10px/1 'Plus Jakarta Sans',system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s ease;pointer-events:auto;animation:bfs-rise 1s .15s cubic-bezier(.16,1,.3,1) both}
+      .bfs-sound-btn:hover{background:rgba(197,160,89,.3);border-color:#F4DFA8;transform:scale(1.05)}
+      .bfs-sound-btn.playing{background:rgba(197,160,89,.28);border-color:#C5A059;color:#FAF8F5}
+      #bfs-loader.bfs-muted .bfs-sound-btn{animation:bfs-blink 1.8s ease-in-out infinite}
       .bfs-hint{position:absolute;bottom:30px;left:0;right:0;margin:0;text-align:center;font:500 11px/1 'Plus Jakarta Sans',system-ui,sans-serif;letter-spacing:.2em;color:rgba(244,223,168,.6);opacity:0;transition:opacity .4s;pointer-events:none}
       #bfs-loader.bfs-muted .bfs-hint{animation:bfs-blink 1.6s ease-in-out infinite}
       /* Reveal: content lifts away, curtain panels slide open */
@@ -129,44 +137,63 @@
           ticks.push({ el: l, hour: hour });
         }
 
-        var seen = false, reduced = false;
-        // The intro (with sound) is for a customer's first time only; afterwards a quick loader
-        try { seen = localStorage.getItem('bfs_intro_played') === '1'; } catch (e) {}
-        try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-
-        var DURATION = seen || reduced ? 600 : 3900; // ≈ the intro sound
         var audio = null;
-        if (!seen && !reduced) {
-          try {
-            audio = new Audio('/brand/new.mp3');
-            audio.volume = 0.6;
-            audio.preload = 'auto';
-            window.__bfsIntro = audio;
-            audio.addEventListener('loadedmetadata', function () {
-              if (audio.duration > 1.5 && audio.duration < 9) DURATION = audio.duration * 1000;
-            });
-          } catch (e) { audio = null; }
-        }
+        try {
+          audio = new Audio('/brand/new.mp3');
+          audio.volume = 0.7;
+          audio.preload = 'auto';
+          window.__bfsIntroAudio = audio;
+        } catch (e) { audio = null; }
 
-        var start = performance.now(), finished = false, soundPlayed = false;
-        var markPlayed = function () { soundPlayed = true; try { localStorage.setItem('bfs_intro_played', '1'); } catch (e) {} };
-        var playAudio = function () {
-          if (!audio || finished || !audio.paused) return;
-          var t = Math.min((performance.now() - start) / 1000, (audio.duration || 4) - 0.2);
-          try { audio.currentTime = Math.max(0, t); } catch (e) {}
+        var DURATION = 3800;
+        var soundBtn = $('bfs-sound-btn');
+        var soundLabel = $('bfs-sound-label');
+
+        var markPlaying = function () {
+          if (soundBtn) soundBtn.classList.add('playing');
+          if (soundLabel) soundLabel.textContent = 'Audio Active 🎶';
           loader.classList.remove('bfs-muted');
-          audio.play().then(markPlayed).catch(function () {});
         };
-        if (audio) {
-          audio.play().then(markPlayed).catch(function () {
-            // Browsers block sound until the first tap/click — no button, just start on that tap
-            loader.classList.add('bfs-muted');
-            ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
-              window.addEventListener(ev, playAudio, { once: true, passive: true });
+
+        var playAudio = function () {
+          if (!audio) return;
+          if (audio.paused) {
+            audio.play().then(markPlaying).catch(function () {
+              loader.classList.add('bfs-muted');
             });
+          }
+        };
+
+        if (soundBtn) {
+          soundBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!audio) return;
+            if (audio.paused) {
+              playAudio();
+            } else {
+              audio.pause();
+              if (soundBtn) soundBtn.classList.remove('playing');
+              if (soundLabel) soundLabel.textContent = 'Sound Muted';
+            }
           });
         }
 
+        // Tap or click anywhere on the loader to immediately trigger audio
+        loader.addEventListener('click', function () {
+          playAudio();
+        });
+        loader.addEventListener('touchstart', function () {
+          playAudio();
+        }, { passive: true });
+
+        // Attempt initial autoplay
+        if (audio) {
+          audio.play().then(markPlaying).catch(function () {
+            loader.classList.add('bfs-muted');
+          });
+        }
+
+        var start = performance.now(), finished = false;
         var ease = function (x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
         var lit = 0, lastCap = capEl.textContent;
         var setCap = function (text) {
