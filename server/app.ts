@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { env } from './config/env';
+import { connectDatabase } from './config/db';
 import {
   sanitizeNoSqlInjection,
   csrfProtection,
@@ -45,6 +46,31 @@ app.use(
   })
 );
 
+// Normalize URL from Vercel rewrites
+app.use((req, _res, next) => {
+  const matched = (req.headers['x-matched-path'] as string) || (req.headers['x-invoke-path'] as string);
+  if (matched && (req.url === '/api' || req.url === '/' || req.url === '/api/index')) {
+    const queryIdx = req.url.indexOf('?');
+    const queryString = queryIdx !== -1 ? req.url.slice(queryIdx) : '';
+    req.url = matched + queryString;
+  }
+  next();
+});
+
+// Auto-connect database in serverless environments
+let isDbConnected = false;
+app.use(async (_req, _res, next) => {
+  if (!isDbConnected) {
+    try {
+      await connectDatabase();
+      isDbConnected = true;
+    } catch (err) {
+      console.error('[DB Auto-Connect Error]:', err);
+    }
+  }
+  next();
+});
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
@@ -58,8 +84,8 @@ app.use(['/api', '/'], apiRateLimiter);
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // SEO Sitemap & Robots
-app.get('/sitemap.xml', handleSitemap);
-app.get('/robots.txt', handleRobots);
+app.get(['/sitemap.xml', '/api/sitemap.xml'], handleSitemap);
+app.get(['/robots.txt', '/api/robots.txt'], handleRobots);
 
 // Health check
 app.get(['/api/health', '/health'], (_req, res) => {
@@ -71,7 +97,7 @@ app.get(['/api/health', '/health'], (_req, res) => {
   });
 });
 
-// Mount API modular routes (supports both /api/prefix and direct path on Vercel)
+// Mount API modular routes (supports both /api/path and /path on Vercel)
 app.use(['/api/auth', '/auth'], authRoutes);
 app.use(['/api/products', '/products'], productRoutes);
 app.use(['/api/content', '/content'], contentRoutes);
