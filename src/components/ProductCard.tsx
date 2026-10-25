@@ -101,32 +101,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <span className="lux-sheen" aria-hidden />
         </Link>
 
-        {/* Top Left Badges */}
-        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10 pointer-events-none scale-90 sm:scale-100 origin-top-left">
-          {isOutOfStock ? (
-            <span className="px-2.5 py-1 bg-[#0D0D0D] text-[#FAF8F5] text-[10px] font-semibold uppercase tracking-[0.16em] rounded">
-              Sold Out
-            </span>
-          ) : (
-            <>
-              {product.bestSeller && (
-                <span className="px-2.5 py-1 bg-[#0D0D0D] text-[#C5A059] border border-[#C5A059]/40 text-[10px] font-semibold uppercase tracking-[0.15em] rounded">
-                  Best Seller
-                </span>
-              )}
-              {product.newArrival && !product.bestSeller && (
-                <span className="px-2.5 py-1 bg-[#1A1A1E] text-[#FAF8F5] text-[10px] font-semibold uppercase tracking-[0.15em] rounded">
-                  New Arrival
-                </span>
-              )}
-              {hasSale && (
-                <span className="px-2.5 py-1 bg-[#C5A059] text-[#0D0D0D] text-[10px] font-bold uppercase tracking-[0.14em] rounded">
-                  Save {discountPercent}%
-                </span>
-              )}
-            </>
-          )}
-        </div>
+        
 
         {/* Top Right Quick Actions */}
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1.5 z-10">

@@ -107,7 +107,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       name: 'Luxury Mechanical',
       slug: 'luxury-mechanical',
       description: 'Self-winding and hand-wound mechanical calibres crafted with exhibition sapphire casebacks.',
-      image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
+      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
       metaTitle: 'Luxury Mechanical Watches | BinFareedStore',
       metaDescription: 'Explore automatic and mechanical luxury watches with sapphire crystal at BinFareedStore.',
       displayOrder: 1,
@@ -165,8 +165,8 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       slug: 'mens-watches',
       subtitle: 'Commanding Presence & Precision',
       description: 'Architectural cases, automatic calibres, and timeless masculine sophistication.',
-      image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
-      bannerImage: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1800&q=85',
+      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
+      bannerImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1800&q=85',
       featured: true,
       displayOrder: 1,
       isActive: true,
@@ -248,10 +248,10 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       shortDescription: 'Self-winding 24-jewel mechanical movement with open-heart balance wheel and champagne gold indices.',
       description:
         'The Aurelius Imperial Calibre 41 is the signature flagship of BinFareed Atelier. Housed in a hand-brushed 316L surgical-grade stainless steel case with a polished champagne-gold bezel, its sunray obsidian dial reveals the beating balance wheel at 6 o’clock. Protected by anti-reflective domed sapphire crystal on both front and exhibition caseback.',
-      mainImage: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
+      mainImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
       images: [
         {
-          url: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
+          url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
           alt: 'Aurelius Imperial Calibre Automatic Front View',
           isMain: true,
         },
@@ -902,9 +902,9 @@ export async function seedDatabase(forceReset = false): Promise<void> {
         subtitle:
           'Discover precision automatic calibres, surgical-grade 316L steel, and scratch-resistant sapphire crystal in the signature BinFareed Atelier vault.',
         desktopImage:
-          'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1920&q=85',
+          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1920&q=85',
         mobileImage:
-          'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=85',
+          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=85',
         primaryCtaText: 'Shop Collection',
         primaryCtaLink: '/shop',
         secondaryCtaText: 'Discover the Collection',

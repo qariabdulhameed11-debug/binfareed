@@ -263,7 +263,7 @@ export const AdminDashboardPage: React.FC = () => {
       shortDescription: '',
       description: '',
       mainImage:
-        'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
+        'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
       status: 'published',
       featured: false,
       bestSeller: false,
@@ -1704,7 +1704,7 @@ export const AdminDashboardPage: React.FC = () => {
                       subtitle: newColSubtitle,
                       image:
                         newColImage ||
-                        'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1000&q=85',
+                        'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1000&q=85',
                     }),
                   });
                   setNewColName('');
@@ -1914,9 +1914,9 @@ export const AdminDashboardPage: React.FC = () => {
                           title: 'New Watch',
                           subtitle: 'Precision automatic calibre with sapphire crystal.',
                           desktopImage:
-                            'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1920&q=85',
+                            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1920&q=85',
                           mobileImage:
-                            'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=85',
+                            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=85',
                           primaryCtaText: 'Shop Collection',
                           primaryCtaLink: '/shop',
                           secondaryCtaText: 'Discover the Collection',
