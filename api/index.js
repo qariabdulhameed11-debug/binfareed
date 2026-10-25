@@ -1865,9 +1865,17 @@ router3.post("/newsletter", async (req, res, next) => {
     next(err);
   }
 });
-async function handleSitemap(_req, res, next) {
+function getDynamicBaseUrl(req) {
+  const host = req.headers["x-forwarded-host"] || req.get("host") || "";
+  const proto = req.headers["x-forwarded-proto"] || (req.protocol === "https" ? "https" : "http");
+  if (host && !host.includes("localhost")) {
+    return `${proto}://${host}`.replace(/\/$/, "");
+  }
+  return env.FRONTEND_URL.replace(/\/$/, "");
+}
+async function handleSitemap(req, res, next) {
   try {
-    const baseUrl = env.FRONTEND_URL.replace(/\/$/, "");
+    const baseUrl = getDynamicBaseUrl(req);
     const [products, collections] = await Promise.all([
       Product.find({ status: "published" }).select("slug updatedAt"),
       Collection.find({ isActive: true }).select("slug updatedAt")
@@ -1909,8 +1917,8 @@ async function handleSitemap(_req, res, next) {
     next(err);
   }
 }
-function handleRobots(_req, res) {
-  const baseUrl = env.FRONTEND_URL.replace(/\/$/, "");
+function handleRobots(req, res) {
+  const baseUrl = getDynamicBaseUrl(req);
   const txt = `User-agent: *
 Allow: /
 Allow: /shop

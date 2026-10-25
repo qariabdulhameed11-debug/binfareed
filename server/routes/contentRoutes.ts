@@ -161,9 +161,18 @@ router.post('/newsletter', async (req: Request, res: Response, next: NextFunctio
 });
 
 // Helper handlers for /sitemap.xml and /robots.txt
-export async function handleSitemap(_req: Request, res: Response, next: NextFunction) {
+function getDynamicBaseUrl(req: Request): string {
+  const host = (req.headers['x-forwarded-host'] as string) || req.get('host') || '';
+  const proto = (req.headers['x-forwarded-proto'] as string) || (req.protocol === 'https' ? 'https' : 'http');
+  if (host && !host.includes('localhost')) {
+    return `${proto}://${host}`.replace(/\/$/, '');
+  }
+  return env.FRONTEND_URL.replace(/\/$/, '');
+}
+
+export async function handleSitemap(req: Request, res: Response, next: NextFunction) {
   try {
-    const baseUrl = env.FRONTEND_URL.replace(/\/$/, '');
+    const baseUrl = getDynamicBaseUrl(req);
     const [products, collections] = await Promise.all([
       Product.find({ status: 'published' }).select('slug updatedAt'),
       Collection.find({ isActive: true }).select('slug updatedAt'),
@@ -212,8 +221,8 @@ export async function handleSitemap(_req: Request, res: Response, next: NextFunc
   }
 }
 
-export function handleRobots(_req: Request, res: Response) {
-  const baseUrl = env.FRONTEND_URL.replace(/\/$/, '');
+export function handleRobots(req: Request, res: Response) {
+  const baseUrl = getDynamicBaseUrl(req);
   const txt = `User-agent: *
 Allow: /
 Allow: /shop
