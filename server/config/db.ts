@@ -1,13 +1,12 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { env } from './env';
 
-let memoryServer: MongoMemoryServer | null = null;
+let memoryServer: any = null;
 let isUsingMemoryServer = false;
 
 export async function connectDatabase(): Promise<{ uri: string; isMemory: boolean }> {
   try {
-    let mongoUri = env.MONGODB_URI.trim();
+    let mongoUri = (env.MONGODB_URI || '').trim();
 
     if (mongoose.connection.readyState >= 1) {
       return { uri: mongoUri || 'cached', isMemory: isUsingMemoryServer };
@@ -18,6 +17,7 @@ export async function connectDatabase(): Promise<{ uri: string; isMemory: boolea
         throw new Error('CRITICAL: MONGODB_URI environment variable is required in production.');
       }
       console.log('[DB] No MONGODB_URI configured. Starting embedded MongoDB server for local development/testing...');
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
       memoryServer = await MongoMemoryServer.create();
       mongoUri = memoryServer.getUri();
       isUsingMemoryServer = true;
