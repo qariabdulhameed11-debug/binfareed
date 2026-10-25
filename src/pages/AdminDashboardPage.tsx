@@ -311,6 +311,9 @@ export const AdminDashboardPage: React.FC = () => {
           typeof editingProduct.category === 'object' && editingProduct.category
             ? (editingProduct.category as Category)._id
             : editingProduct.category || null,
+        collections: Array.isArray(editingProduct.collections)
+          ? editingProduct.collections.map((c: any) => (typeof c === 'object' && c ? c._id : c))
+          : [],
       };
 
       const res = await apiRequest(endpoint, {

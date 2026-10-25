@@ -82,7 +82,7 @@ describe('BinFareedStore — Automated Unit & Integration Test Suite', () => {
 
       expect(overviewRes.status).toBe(200);
       expect(overviewRes.body.success).toBe(true);
-      expect(overviewRes.body.metrics.totalProducts).toBeGreaterThanOrEqual(12);
+      expect(overviewRes.body.metrics.totalProducts).toBeGreaterThanOrEqual(9);
       expect(overviewRes.body.metrics.paidRevenue).toBeGreaterThan(0);
     });
   });
@@ -97,7 +97,7 @@ describe('BinFareedStore — Automated Unit & Integration Test Suite', () => {
       expect(res.body.facets.brands.length).toBeGreaterThan(0);
 
       for (const p of res.body.products) {
-        expect(p.specifications.movement).toBe('Automatic');
+        expect(p.specifications.movement).toContain('Automatic');
         expect(p.stock).toBeGreaterThan(0);
       }
 

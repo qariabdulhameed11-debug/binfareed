@@ -1286,19 +1286,19 @@ router2.get("/", async (req, res, next) => {
     if (movement && movement.trim()) {
       const movements = movement.split(",").map((m) => m.trim()).filter(Boolean);
       if (movements.length > 0) {
-        filter["specifications.movement"] = { $in: movements };
+        filter["specifications.movement"] = { $in: movements.map((m) => new RegExp(m, "i")) };
       }
     }
     if (strapMaterial && strapMaterial.trim()) {
       const straps = strapMaterial.split(",").map((s) => s.trim()).filter(Boolean);
       if (straps.length > 0) {
-        filter["specifications.strapMaterial"] = { $in: straps };
+        filter["specifications.strapMaterial"] = { $in: straps.map((s) => new RegExp(s, "i")) };
       }
     }
     if (dialColor && dialColor.trim()) {
       const dials = dialColor.split(",").map((d) => d.trim()).filter(Boolean);
       if (dials.length > 0) {
-        filter["specifications.dialColor"] = { $in: dials };
+        filter["specifications.dialColor"] = { $in: dials.map((d) => new RegExp(d, "i")) };
       }
     }
     if (minPrice || maxPrice) {
@@ -2821,20 +2821,20 @@ router5.get("/overview", async (_req, res, next) => {
   }
 });
 var productPayloadSchema = z5.object({
-  name: z5.string().min(2, "Product name is required").max(180),
+  name: z5.string().min(1, "Product name is required").max(180),
   slug: z5.string().optional(),
-  brand: z5.string().min(1, "Brand is required"),
-  model: z5.string().min(1, "Model reference is required"),
+  brand: z5.string().optional().default("BinFareed Atelier"),
+  model: z5.string().optional().default(""),
   sku: z5.string().optional(),
-  category: z5.string().optional().nullable(),
-  collections: z5.array(z5.string()).optional().default([]),
+  category: z5.any().optional().nullable(),
+  collections: z5.any().optional().default([]),
   gender: z5.enum(["Men", "Women", "Unisex"]).default("Men"),
-  price: z5.number().min(1, "Price must be greater than 0"),
+  price: z5.number().min(0, "Price must be 0 or greater"),
   salePrice: z5.number().nullable().optional().default(null),
   costPrice: z5.number().min(0).optional().default(0),
   shortDescription: z5.string().optional().default(""),
-  description: z5.string().min(10, "Detailed product description is required"),
-  mainImage: z5.string().min(1, "Main product image is required"),
+  description: z5.string().optional().default(""),
+  mainImage: z5.string().optional().default(""),
   images: z5.array(
     z5.object({
       url: z5.string().min(1),
@@ -2928,11 +2928,14 @@ router5.post("/products", async (req, res, next) => {
     }
     const sku = data.sku && data.sku.trim() ? data.sku.trim().toUpperCase() : generateSku(data.brand, data.model);
     const images = data.images.length > 0 ? data.images : [{ url: data.mainImage, alt: data.name, isMain: true }];
+    const normalizedCategory = data.category === null || !data.category ? void 0 : typeof data.category === "object" && data.category ? data.category._id : data.category;
+    const normalizedCollections = Array.isArray(data.collections) ? data.collections.map((c) => typeof c === "object" && c ? c._id : c).filter(Boolean) : [];
     const product = await Product.create({
       ...data,
       slug,
       sku,
-      category: data.category || void 0,
+      category: normalizedCategory,
+      collections: normalizedCollections,
       images
     });
     await StockMovement.create({
@@ -2977,9 +2980,12 @@ router5.put("/products/:id", async (req, res, next) => {
     if (data.sku && data.sku.trim()) {
       data.sku = data.sku.trim().toUpperCase();
     }
+    const normalizedCategory = data.category === null ? null : (typeof data.category === "object" && data.category ? data.category._id : data.category) ?? product.category;
+    const normalizedCollections = Array.isArray(data.collections) ? data.collections.map((c) => typeof c === "object" && c ? c._id : c) : void 0;
     Object.assign(product, {
       ...data,
-      category: data.category === null ? void 0 : data.category ?? product.category
+      category: normalizedCategory,
+      ...normalizedCollections !== void 0 ? { collections: normalizedCollections } : {}
     });
     await product.save();
     if (data.stock !== void 0 && data.stock !== previousStock) {

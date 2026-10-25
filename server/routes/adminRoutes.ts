@@ -221,20 +221,20 @@ router.get('/overview', async (_req: Request, res: Response, next: NextFunction)
 // B. PRODUCT MANAGEMENT
 // ==========================================
 const productPayloadSchema = z.object({
-  name: z.string().min(2, 'Product name is required').max(180),
+  name: z.string().min(1, 'Product name is required').max(180),
   slug: z.string().optional(),
-  brand: z.string().min(1, 'Brand is required'),
-  model: z.string().min(1, 'Model reference is required'),
+  brand: z.string().optional().default('BinFareed Atelier'),
+  model: z.string().optional().default(''),
   sku: z.string().optional(),
-  category: z.string().optional().nullable(),
-  collections: z.array(z.string()).optional().default([]),
+  category: z.any().optional().nullable(),
+  collections: z.any().optional().default([]),
   gender: z.enum(['Men', 'Women', 'Unisex']).default('Men'),
-  price: z.number().min(1, 'Price must be greater than 0'),
+  price: z.number().min(0, 'Price must be 0 or greater'),
   salePrice: z.number().nullable().optional().default(null),
   costPrice: z.number().min(0).optional().default(0),
   shortDescription: z.string().optional().default(''),
-  description: z.string().min(10, 'Detailed product description is required'),
-  mainImage: z.string().min(1, 'Main product image is required'),
+  description: z.string().optional().default(''),
+  mainImage: z.string().optional().default(''),
   images: z
     .array(
       z.object({
@@ -363,11 +363,23 @@ router.post('/products', async (req: Request, res: Response, next: NextFunction)
         ? data.images
         : [{ url: data.mainImage, alt: data.name, isMain: true }];
 
+    const normalizedCategory =
+      data.category === null || !data.category
+        ? undefined
+        : typeof data.category === 'object' && data.category
+        ? data.category._id
+        : data.category;
+
+    const normalizedCollections = Array.isArray(data.collections)
+      ? data.collections.map((c: any) => (typeof c === 'object' && c ? c._id : c)).filter(Boolean)
+      : [];
+
     const product = await Product.create({
       ...data,
       slug,
       sku,
-      category: data.category || undefined,
+      category: normalizedCategory,
+      collections: normalizedCollections,
       images,
     });
 
@@ -420,9 +432,18 @@ router.put('/products/:id', async (req: Request, res: Response, next: NextFuncti
       data.sku = data.sku.trim().toUpperCase();
     }
 
+    const normalizedCategory = data.category === null 
+      ? null 
+      : (typeof data.category === 'object' && data.category ? data.category._id : data.category) ?? product.category;
+
+    const normalizedCollections = Array.isArray(data.collections)
+      ? data.collections.map((c: any) => (typeof c === 'object' && c ? c._id : c))
+      : undefined;
+
     Object.assign(product, {
       ...data,
-      category: data.category === null ? undefined : data.category ?? product.category,
+      category: normalizedCategory,
+      ...(normalizedCollections !== undefined ? { collections: normalizedCollections } : {}),
     });
 
     await product.save();

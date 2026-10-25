@@ -94,21 +94,21 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     if (movement && movement.trim()) {
       const movements = movement.split(',').map((m) => m.trim()).filter(Boolean);
       if (movements.length > 0) {
-        filter['specifications.movement'] = { $in: movements };
+        filter['specifications.movement'] = { $in: movements.map((m) => new RegExp(m, 'i')) };
       }
     }
 
     if (strapMaterial && strapMaterial.trim()) {
       const straps = strapMaterial.split(',').map((s) => s.trim()).filter(Boolean);
       if (straps.length > 0) {
-        filter['specifications.strapMaterial'] = { $in: straps };
+        filter['specifications.strapMaterial'] = { $in: straps.map((s) => new RegExp(s, 'i')) };
       }
     }
 
     if (dialColor && dialColor.trim()) {
       const dials = dialColor.split(',').map((d) => d.trim()).filter(Boolean);
       if (dials.length > 0) {
-        filter['specifications.dialColor'] = { $in: dials };
+        filter['specifications.dialColor'] = { $in: dials.map((d) => new RegExp(d, 'i')) };
       }
     }
 
