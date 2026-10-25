@@ -3249,6 +3249,39 @@ router5.get("/orders/:id", async (req, res, next) => {
     next(err);
   }
 });
+async function restoreOrderStock(order, user, reasonPrefix) {
+  if (order.inventoryRestored) return;
+  for (const item of order.items) {
+    const prod = await Product.findById(item.product);
+    if (prod) {
+      const prevStock = prod.stock;
+      prod.stock += item.quantity;
+      prod.soldCount = Math.max(0, (prod.soldCount || 0) - item.quantity);
+      if (item.variantSku && prod.variants && prod.variants.length > 0) {
+        const v = prod.variants.find((vr) => vr.sku === item.variantSku);
+        if (v) {
+          v.stock += item.quantity;
+        }
+      }
+      await prod.save();
+      await StockMovement.create({
+        product: prod._id,
+        sku: item.sku,
+        variantSku: item.variantSku,
+        type: "order_cancelled",
+        quantityChange: item.quantity,
+        previousStock: prevStock,
+        newStock: prod.stock,
+        reason: `${reasonPrefix} for order ${order.orderNumber}`,
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        performedBy: user._id,
+        performedByName: user.name
+      });
+    }
+  }
+  order.inventoryRestored = true;
+}
 router5.put("/orders/:id/status", async (req, res, next) => {
   try {
     const schema = z5.object({
@@ -3358,6 +3391,66 @@ router5.put("/orders/:id/status", async (req, res, next) => {
       success: true,
       message: `Order ${order.orderNumber} updated.`,
       order
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+router5.delete("/orders/:id", async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      throw new AppError("Order not found.", 404);
+    }
+    if (order.fulfillmentStatus !== "cancelled" && order.fulfillmentStatus !== "refunded" && !order.inventoryRestored) {
+      await restoreOrderStock(order, req.user, "Stock restored upon deletion");
+    }
+    await Order.findByIdAndDelete(order._id);
+    await logAudit({
+      user: req.user,
+      action: "DELETE_ORDER",
+      entityType: "order",
+      entityId: String(order._id),
+      details: `Deleted order ${order.orderNumber} (Customer: ${order.shippingAddress?.fullName || "N/A"}, Total: ${order.totalAmount} PKR)`,
+      ipAddress: req.ip
+    });
+    res.json({
+      success: true,
+      message: `Order ${order.orderNumber} deleted successfully.`
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+router5.post("/orders/bulk-delete", async (req, res, next) => {
+  try {
+    const schema = z5.object({
+      orderIds: z5.array(z5.string()).min(1, "Please select at least one order to delete.")
+    });
+    const { orderIds } = schema.parse(req.body);
+    const orders = await Order.find({ _id: { $in: orderIds } });
+    if (!orders.length) {
+      throw new AppError("No matching orders found.", 404);
+    }
+    let restoredCount = 0;
+    for (const order of orders) {
+      if (order.fulfillmentStatus !== "cancelled" && order.fulfillmentStatus !== "refunded" && !order.inventoryRestored) {
+        await restoreOrderStock(order, req.user, "Stock restored upon bulk deletion");
+        restoredCount++;
+      }
+    }
+    await Order.deleteMany({ _id: { $in: orderIds } });
+    await logAudit({
+      user: req.user,
+      action: "BULK_DELETE_ORDERS",
+      entityType: "order",
+      details: `Bulk deleted ${orders.length} order(s). Restored stock for ${restoredCount} order(s).`,
+      ipAddress: req.ip
+    });
+    res.json({
+      success: true,
+      message: `Successfully deleted ${orders.length} order(s).`,
+      deletedCount: orders.length
     });
   } catch (err) {
     next(err);

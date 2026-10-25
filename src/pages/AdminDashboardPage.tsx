@@ -445,6 +445,51 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async (order: Order) => {
+    const confirmMsg = `Are you sure you want to permanently delete order "${order.orderNumber}"?\n\nCustomer: ${order.shippingAddress?.fullName || 'N/A'}\nTotal: ${formatPrice(order.totalAmount)}\n\nThis will remove the order record and restore product stock.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await apiRequest(`/api/admin/orders/${order._id}`, {
+        method: 'DELETE',
+      });
+      if (res.success) {
+        addToast(res.message || `Order ${order.orderNumber} deleted successfully.`, 'success');
+        if (selectedOrder?._id === order._id) {
+          setSelectedOrder(null);
+        }
+        setSlipIds((prev) => prev.filter((id) => id !== order._id));
+        setAdminOrders((prev) => prev.filter((o) => o._id !== order._id));
+        await loadTabContent();
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Failed to delete order.', 'error');
+    }
+  };
+
+  const handleBulkDeleteOrders = async () => {
+    if (slipIds.length === 0) return;
+    const confirmMsg = `Are you sure you want to delete ${slipIds.length} selected order(s)?\n\nThis will permanently remove the selected orders and restore product inventory.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await apiRequest('/api/admin/orders/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ orderIds: slipIds }),
+      });
+      if (res.success) {
+        addToast(res.message || `${slipIds.length} orders deleted successfully.`, 'success');
+        setSlipIds([]);
+        if (selectedOrder && slipIds.includes(selectedOrder._id)) {
+          setSelectedOrder(null);
+        }
+        await loadTabContent();
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Bulk delete failed.', 'error');
+    }
+  };
+
   const handleToggleCustomerStatus = async (customerId: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
     try {
@@ -1377,6 +1422,16 @@ export const AdminDashboardPage: React.FC = () => {
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print slips{slipIds.length ? ` (${slipIds.length})` : ''}</span>
               </button>
+              <button
+                type="button"
+                disabled={slipIds.length === 0}
+                onClick={handleBulkDeleteOrders}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold disabled:opacity-40 transition-colors"
+                title={slipIds.length ? '' : 'Tick orders in the list first to delete'}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                <span>Delete selected{slipIds.length ? ` (${slipIds.length})` : ''}</span>
+              </button>
               <a
                 href="/api/admin/reports/export/orders"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#0D0D0D] text-[#FAF8F5] text-xs uppercase tracking-wider font-semibold rounded-lg"
@@ -1534,6 +1589,15 @@ export const AdminDashboardPage: React.FC = () => {
                               className="h-9 px-4 rounded-lg border border-black/15 hover:border-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#FAF8F5] text-[12px] font-semibold transition-colors"
                             >
                               Open
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteOrder(o)}
+                              aria-label={`Delete order ${o.orderNumber}`}
+                              title="Delete order permanently"
+                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-red-200 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -2923,6 +2987,14 @@ export const AdminDashboardPage: React.FC = () => {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-neutral-300 hover:border-[#0D0D0D] text-xs font-semibold"
                 >
                   <Printer className="w-3.5 h-3.5" /> Print Slip
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOrder(selectedOrder)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-red-200 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 text-xs font-semibold transition-colors"
+                  title="Permanently delete this order"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Order
                 </button>
                 <button
                   type="button"
