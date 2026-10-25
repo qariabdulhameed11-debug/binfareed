@@ -9,9 +9,7 @@ import {
   ShoppingBag,
   Menu,
   X,
-  ChevronRight,
-  Volume2,
-  VolumeX,
+  ChevronRight
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
@@ -26,34 +24,7 @@ const NAV_LINKS = [
 ];
 
 export const Navbar: React.FC = () => {
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
-  useEffect(() => {
-    const checkAudio = () => {
-      const audio = (window as any).__bfsIntroAudio;
-      if (audio) {
-        setIsAudioPlaying(!audio.paused);
-      }
-    };
-    checkAudio();
-    const interval = setInterval(checkAudio, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const toggleAudio = () => {
-    let audio = (window as any).__bfsIntroAudio;
-    if (!audio) {
-      audio = new Audio('/brand/new.mp3');
-      audio.volume = 0.7;
-      (window as any).__bfsIntroAudio = audio;
-    }
-    if (audio.paused) {
-      audio.play().then(() => setIsAudioPlaying(true)).catch(console.warn);
-    } else {
-      audio.pause();
-      setIsAudioPlaying(false);
-    }
-  };
   const {
     user,
     cartItems,
@@ -146,21 +117,7 @@ export const Navbar: React.FC = () => {
             {/* Action Icons */}
             <div className="flex items-center gap-1.5 sm:gap-3">
 
-              <button
-                type="button"
-                onClick={toggleAudio}
-                className={`p-2 transition-colors relative ${
-                  isAudioPlaying ? 'text-[#C5A059]' : 'text-[#FAF8F5]/80 hover:text-[#C5A059]'
-                }`}
-                aria-label={isAudioPlaying ? 'Mute luxury sound' : 'Play luxury sound'}
-                title={isAudioPlaying ? 'Mute luxury sound' : 'Play luxury sound'}
-              >
-                {isAudioPlaying ? (
-                  <Volume2 className="w-5 h-5 animate-pulse text-[#C5A059]" />
-                ) : (
-                  <VolumeX className="w-5 h-5 text-[#FAF8F5]/60 hover:text-[#C5A059]" />
-                )}
-              </button>
+
 
               <button
                 type="button"
