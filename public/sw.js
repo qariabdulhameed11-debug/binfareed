@@ -1,5 +1,5 @@
 /* BinFareed Store service worker: installable app, fast repeat loads, push notifications. */
-const VERSION = 'bfs-v1';
+const VERSION = 'bfs-v3';
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const IMAGE_CACHE = `${VERSION}-images`;
@@ -29,8 +29,8 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Never cache the API or admin data — always live
-  if (url.pathname.startsWith('/api/')) return;
+  // Never cache the API or admin routes — always live
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return;
 
   // Pages: network first (fresh content), fall back to cache when offline
   if (req.mode === 'navigate') {

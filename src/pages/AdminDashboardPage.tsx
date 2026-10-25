@@ -1719,9 +1719,10 @@ export const AdminDashboardPage: React.FC = () => {
                               onClick={() => handleDeleteOrder(o)}
                               aria-label={`Delete order ${o.orderNumber}`}
                               title="Permanently delete order"
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-red-200 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
+                              className="h-8 px-2.5 rounded-lg border border-red-200 bg-red-50/50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 text-[11px] font-semibold inline-flex items-center gap-1 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
                             </button>
                           </div>
                         </td>
