@@ -51,7 +51,7 @@ app.use(cookieParser());
 // NoSQL injection sanitization & CSRF origin verification
 app.use(sanitizeNoSqlInjection);
 app.use(csrfProtection);
-app.use('/api', apiRateLimiter);
+app.use(['/api', '/'], apiRateLimiter);
 
 // Serve local uploaded images
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
@@ -61,7 +61,7 @@ app.get('/sitemap.xml', handleSitemap);
 app.get('/robots.txt', handleRobots);
 
 // Health check
-app.get('/api/health', (_req, res) => {
+app.get(['/api/health', '/health'], (_req, res) => {
   res.json({
     success: true,
     service: 'BinFareedStore API',
@@ -70,16 +70,16 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Mount API modular routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/content', contentRoutes);
-app.use('/api', cartOrderRoutes);
-app.use('/api/push', pushRoutes);
-app.use('/api/admin', adminRoutes);
+// Mount API modular routes (supports both /api/prefix and direct path on Vercel)
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/products', '/products'], productRoutes);
+app.use(['/api/content', '/content'], contentRoutes);
+app.use(['/api/push', '/push'], pushRoutes);
+app.use(['/api/admin', '/admin'], adminRoutes);
+app.use(['/api', '/'], cartOrderRoutes);
 
 // 404 handler for unknown API routes
-app.use('/api/*', (_req, res) => {
+app.use(['/api/*', '/auth/*', '/products/*', '/content/*', '/push/*'], (_req, res) => {
   res.status(404).json({
     success: false,
     message: 'API endpoint not found.',

@@ -8,5 +8,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     console.error('[Vercel Serverless DB Error]:', err);
   }
+
+  // Restore original requested URL if rewritten by Vercel
+  const matchedPath =
+    (req.headers['x-matched-path'] as string) ||
+    (req.headers['x-invoke-path'] as string) ||
+    (req.headers['x-now-route-matches'] as string);
+
+  if (matchedPath && !matchedPath.includes('/api/index')) {
+    const queryIdx = req.url.indexOf('?');
+    const queryString = queryIdx !== -1 ? req.url.slice(queryIdx) : '';
+    req.url = (matchedPath.startsWith('/') ? matchedPath : `/${matchedPath}`) + queryString;
+  }
+
   return app(req, res);
 }
