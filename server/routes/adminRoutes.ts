@@ -29,9 +29,14 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 // Configure safe image upload storage
-const uploadsDir = path.resolve(process.cwd(), 'uploads');
+const uploadsDir =
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+    ? path.join('/tmp', 'uploads')
+    : path.resolve(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  } catch {}
 }
 
 const storage = multer.diskStorage({
