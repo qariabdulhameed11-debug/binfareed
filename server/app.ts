@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import mongoose from 'mongoose';
 import { env } from './config/env';
 import { connectDatabase } from './config/db';
 import {
@@ -57,10 +58,22 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Auto-connect database in serverless environments
+// Immediate Health Check - Responds without waiting for DB so we can monitor server status
+app.get(['/api/health', '/health'], (_req, res) => {
+  res.json({
+    success: true,
+    service: 'BinFareedStore API',
+    status: 'operational',
+    dbState: mongoose.connection.readyState,
+    dbConnected: mongoose.connection.readyState >= 1,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Auto-connect database for all functional routes
 let isDbConnected = false;
 app.use(async (_req, _res, next) => {
-  if (!isDbConnected) {
+  if (!isDbConnected || mongoose.connection.readyState === 0) {
     try {
       await connectDatabase();
       isDbConnected = true;
@@ -86,16 +99,6 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 // SEO Sitemap & Robots
 app.get(['/sitemap.xml', '/api/sitemap.xml'], handleSitemap);
 app.get(['/robots.txt', '/api/robots.txt'], handleRobots);
-
-// Health check
-app.get(['/api/health', '/health'], (_req, res) => {
-  res.json({
-    success: true,
-    service: 'BinFareedStore API',
-    status: 'operational',
-    timestamp: new Date().toISOString(),
-  });
-});
 
 // Mount API modular routes (supports both /api/path and /path on Vercel)
 app.use(['/api/auth', '/auth'], authRoutes);
