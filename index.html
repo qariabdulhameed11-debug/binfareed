@@ -68,12 +68,10 @@
         <div class="bfs-count"><span id="bfs-pct">1</span><small>%</small></div>
         <div class="bfs-rule"><span id="bfs-bar"></span></div>
         <p class="bfs-cap" id="bfs-cap">Entering the Watch World</p>
-        <button id="bfs-sound-btn" class="bfs-sound-btn" type="button" aria-label="Play sound">
-          <span id="bfs-sound-icon">🔊</span>
-          <span id="bfs-sound-label">Tap for sound</span>
-        </button>
+
       </div>
     </div>
+    <audio id="bfs-bg-audio" src="/brand/new.mp3" preload="auto" autoplay playsinline loop></audio>
     <style>
       #bfs-loader{position:fixed;inset:0;z-index:9999;overflow:hidden;color:#F4DFA8;pointer-events:auto}
       #bfs-loader .bfs-panel{position:absolute;left:0;right:0;height:50.5%;background:radial-gradient(120% 140% at 50% 100%,#17140e 0%,#08090b 60%);transition:transform 1.1s cubic-bezier(.77,0,.18,1)}
@@ -137,61 +135,54 @@
           ticks.push({ el: l, hour: hour });
         }
 
-        var audio = null;
-        try {
-          audio = new Audio('/brand/new.mp3');
-          audio.volume = 0.7;
-          audio.preload = 'auto';
+        var audio = document.getElementById('bfs-bg-audio');
+        if (!audio) {
+          try {
+            audio = new Audio('/brand/new.mp3');
+            audio.preload = 'auto';
+            audio.loop = true;
+          } catch (e) { audio = null; }
+        }
+        if (audio) {
+          audio.volume = 0.65;
           window.__bfsIntroAudio = audio;
-        } catch (e) { audio = null; }
+        }
 
         var DURATION = 3800;
-        var soundBtn = $('bfs-sound-btn');
-        var soundLabel = $('bfs-sound-label');
-
-        var markPlaying = function () {
-          if (soundBtn) soundBtn.classList.add('playing');
-          if (soundLabel) soundLabel.textContent = 'Audio Active 🎶';
-          loader.classList.remove('bfs-muted');
-        };
-
-        var playAudio = function () {
-          if (!audio) return;
-          if (audio.paused) {
-            audio.play().then(markPlaying).catch(function () {
-              loader.classList.add('bfs-muted');
-            });
+        var audioStarted = false;
+        var tryPlayAudio = function () {
+          if (!audio || audioStarted) return;
+          var p = audio.play();
+          if (p && typeof p.then === 'function') {
+            p.then(function () {
+              audioStarted = true;
+              removeListeners();
+            }).catch(function () {});
           }
         };
 
-        if (soundBtn) {
-          soundBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            if (!audio) return;
-            if (audio.paused) {
-              playAudio();
-            } else {
-              audio.pause();
-              if (soundBtn) soundBtn.classList.remove('playing');
-              if (soundLabel) soundLabel.textContent = 'Sound Muted';
-            }
-          });
-        }
+        var interactionEvents = ['pointerdown', 'touchstart', 'mousemove', 'wheel', 'scroll', 'keydown', 'click'];
+        var onUserPresence = function () {
+          tryPlayAudio();
+        };
 
-        // Tap or click anywhere on the loader to immediately trigger audio
-        loader.addEventListener('click', function () {
-          playAudio();
+        var removeListeners = function () {
+          interactionEvents.forEach(function (ev) {
+            window.removeEventListener(ev, onUserPresence, { passive: true });
+          });
+        };
+
+        interactionEvents.forEach(function (ev) {
+          window.addEventListener(ev, onUserPresence, { passive: true });
         });
-        loader.addEventListener('touchstart', function () {
-          playAudio();
-        }, { passive: true });
 
-        // Attempt initial autoplay
+        tryPlayAudio();
         if (audio) {
-          audio.play().then(markPlaying).catch(function () {
-            loader.classList.add('bfs-muted');
-          });
+          audio.addEventListener('canplay', tryPlayAudio, { once: true });
+          audio.addEventListener('loadeddata', tryPlayAudio, { once: true });
         }
+        window.addEventListener('load', tryPlayAudio, { once: true });
+        document.addEventListener('DOMContentLoaded', tryPlayAudio, { once: true });
 
         var start = performance.now(), finished = false;
         var ease = function (x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
