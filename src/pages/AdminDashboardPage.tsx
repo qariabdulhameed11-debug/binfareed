@@ -661,22 +661,21 @@ export const AdminDashboardPage: React.FC = () => {
   const NAV_ITEMS: { id: AdminTab; label: string; icon: any }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Watch },
-    { id: 'inventory', label: 'Stock', icon: Boxes },
+    { id: 'inventory', label: 'Stock & Vault', icon: Boxes },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
-    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
-    { id: 'security', label: 'Change Password', icon: KeyRound },
-    { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'catalog', label: 'Categories', icon: Layers },
-    { id: 'homepage', label: 'Homepage', icon: ImageIcon },
+    { id: 'whatsapp', label: 'WhatsApp Hub', icon: MessageCircle },
+    { id: 'catalog', label: 'Categories & Sets', icon: Layers },
+    { id: 'homepage', label: 'Homepage Showcase', icon: ImageIcon },
     { id: 'coupons', label: 'Discount Codes', icon: Ticket },
     { id: 'reports_settings', label: 'Reports & Settings', icon: BarChart3 },
+    { id: 'security', label: 'Change Password', icon: KeyRound },
   ];
 
   const NAV_GROUPS: { label: string; ids: AdminTab[] }[] = [
     { label: 'Dashboard', ids: ['overview'] },
     { label: 'Catalogue', ids: ['products', 'inventory', 'catalog'] },
-    { label: 'Sales', ids: ['orders', 'whatsapp', 'customers', 'coupons'] },
-    { label: 'Store', ids: ['homepage', 'reports_settings', 'security'] },
+    { label: 'Sales & Operations', ids: ['orders', 'whatsapp', 'coupons'] },
+    { label: 'Store Management', ids: ['homepage', 'reports_settings', 'security'] },
   ];
 
   const activeItem = NAV_ITEMS.find((i) => i.id === activeTab);
@@ -707,40 +706,55 @@ export const AdminDashboardPage: React.FC = () => {
         aria-hidden
       />
 
-      {/* Sidebar: off-canvas drawer on mobile, sticky rail on desktop */}
+      {/* Sidebar: luxury off-canvas drawer on mobile, sticky rail on desktop */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-[272px] shrink-0 bg-[#0B0B0D] text-[#FAF8F5] flex flex-col border-r border-white/5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-[280px] shrink-0 bg-gradient-to-b from-[#131316] via-[#0E0E11] to-[#0A0A0C] text-[#FAF8F5] flex flex-col border-r border-[#C5A059]/20 shadow-[4px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
         aria-label="Admin navigation"
       >
-        <div className="h-[72px] px-5 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-3 min-w-0">
-            <img src="/brand/logo-mark.webp" alt="" width={38} height={40} className="h-10 w-auto shrink-0" />
+        {/* Brand Header */}
+        <div className="h-[80px] px-5 flex items-center justify-between border-b border-white/[0.08] bg-white/[0.02]">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1C1810] to-[#0A0A0B] p-2 flex items-center justify-center border border-[#C5A059]/35 shadow-[0_0_15px_rgba(197,160,89,0.15)] shrink-0">
+              <img src="/brand/logo-mark.webp" alt="BinFareed" width={32} height={34} className="h-7 w-auto object-contain" />
+            </div>
             <div className="min-w-0 leading-tight">
-              <p className="font-serif-luxury text-lg font-semibold truncate">BinFareed</p>
-              <p className="text-[9px] uppercase tracking-[0.28em] text-[#C5A059]">Admin Console</p>
+              <p className="font-serif-luxury text-base font-bold tracking-[0.12em] text-[#FAF8F5] truncate">
+                BIN FAREED
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <p className="text-[9px] uppercase tracking-[0.24em] text-[#C5A059] font-semibold">
+                  Atelier Console
+                </p>
+              </div>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setMobileNavOpen(false)}
-            className="lg:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5"
+            className="lg:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {/* Navigation List */}
+        <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin scrollbar-thumb-white/10">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="px-3 mb-1.5 text-[10px] uppercase tracking-[0.22em] text-white/30 font-semibold">
-                {group.label}
-              </p>
-              <div className="space-y-0.5">
+              <div className="px-3 mb-1.5 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.24em] text-[#C5A059]/75 font-bold">
+                  {group.label}
+                </span>
+                <span className="h-px flex-1 ml-3 bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
+              </div>
+              <div className="space-y-1">
                 {group.ids.map((id) => {
-                  const item = NAV_ITEMS.find((n) => n.id === id)!;
+                  const item = NAV_ITEMS.find((n) => n.id === id);
+                  if (!item) return null;
                   const Icon = item.icon;
                   const active = activeTab === id;
                   return (
@@ -749,22 +763,30 @@ export const AdminDashboardPage: React.FC = () => {
                       type="button"
                       onClick={() => goTo(id)}
                       aria-current={active ? 'page' : undefined}
-                      className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
+                      className={`group relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                         active
-                          ? 'bg-gradient-to-r from-[#C5A059]/20 to-transparent text-[#F4DFA8]'
-                          : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
+                          ? 'bg-gradient-to-r from-[#C5A059]/25 via-[#C5A059]/10 to-transparent text-[#FAF8F5] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                          : 'text-neutral-400 hover:text-[#FAF8F5] hover:bg-white/[0.04]'
                       }`}
                     >
                       <span
-                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-[#C5A059] transition-all duration-300 ${
-                          active ? 'h-6 opacity-100' : 'h-0 opacity-0'
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-[#C5A059] shadow-[0_0_8px_#C5A059] transition-all duration-300 ${
+                          active ? 'h-5 opacity-100' : 'h-0 opacity-0'
                         }`}
                       />
-                      <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-[#C5A059]' : 'text-white/45 group-hover:text-white/80'}`} />
+                      <Icon
+                        className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+                          active ? 'text-[#C5A059]' : 'text-neutral-400 group-hover:text-[#F4DFA8]'
+                        }`}
+                      />
                       <span className="truncate">{item.label}</span>
-                      {id === 'orders' && newOrderCount > 0 && (
-                        <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-[#C5A059] text-[#0D0D0D] text-[10px] font-bold flex items-center justify-center badge-pop">
-                          {newOrderCount}
+                      {id === 'orders' && (
+                        <span className="ml-auto flex items-center gap-1.5">
+                          {adminOrders.filter((o) => o.fulfillmentStatus === 'pending').length > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+                              {adminOrders.filter((o) => o.fulfillmentStatus === 'pending').length} new
+                            </span>
+                          )}
                         </span>
                       )}
                     </button>
@@ -775,26 +797,27 @@ export const AdminDashboardPage: React.FC = () => {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-white/5 space-y-1">
-          <InstallAppButton
-            label="Install Admin App"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-[#DFBD78] hover:text-[#F4DFA8] hover:bg-[#C5A059]/10 transition-colors"
-          />
+        {/* Footer info & Profile */}
+        <div className="p-3.5 border-t border-white/[0.08] bg-black/20 space-y-2">
           <Link
             to="/"
             target="_blank"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-white/60 hover:text-white hover:bg-white/[0.04] transition-colors"
+            className="flex items-center justify-between px-3.5 py-2 rounded-xl border border-white/10 hover:border-[#C5A059]/50 bg-white/[0.02] hover:bg-[#C5A059]/10 text-xs font-semibold text-neutral-300 hover:text-[#FAF8F5] transition-all group"
           >
-            <ExternalLink className="w-[18px] h-[18px] text-white/45" />
-            View Storefront
+            <span className="inline-flex items-center gap-2">
+              <ExternalLink className="w-3.5 h-3.5 text-[#C5A059] group-hover:scale-110 transition-transform" />
+              <span>Live Storefront</span>
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-[#C5A059] font-bold">Visit ↗</span>
           </Link>
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/[0.03]">
-            <span className="w-9 h-9 rounded-full bg-[#C5A059]/15 border border-[#C5A059]/40 text-[#DFBD78] text-xs font-bold flex items-center justify-center shrink-0">
+
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#9E7B36] text-[#0D0D0D] text-xs font-black flex items-center justify-center shrink-0 shadow-md">
               {initials}
             </span>
             <div className="min-w-0 flex-1 leading-tight">
-              <p className="text-[13px] font-semibold truncate">{user.name.replace(/\s*\(.*\)/, '')}</p>
-              <p className="text-[11px] text-white/40 truncate">{user.email}</p>
+              <p className="text-[12px] font-bold text-[#FAF8F5] truncate">{user.name.replace(/\s*\(.*\)/, '')}</p>
+              <p className="text-[10px] text-[#C5A059] font-semibold uppercase tracking-wider">Administrator</p>
             </div>
             <button
               type="button"
@@ -802,9 +825,9 @@ export const AdminDashboardPage: React.FC = () => {
                 await logout();
                 navigate('/admin', { replace: true });
               }}
-              className="p-2 rounded-lg text-white/50 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+              className="p-2 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
               aria-label="Sign out"
-              title="Sign out"
+              title="Sign out of Admin Console"
             >
               <LogOut className="w-4 h-4" />
             </button>
