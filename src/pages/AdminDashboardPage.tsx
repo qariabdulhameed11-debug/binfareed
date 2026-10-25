@@ -122,6 +122,9 @@ export const AdminDashboardPage: React.FC = () => {
   const [orderCourier, setOrderCourier] = useState('');
   const [orderTracking, setOrderTracking] = useState('');
   const [orderNote, setOrderNote] = useState('');
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
 
   // Customers state
   const [customers, setCustomers] = useState<any[]>([]);
@@ -525,33 +528,43 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleDeleteOrder = async (order: Order) => {
-    const confirmMsg = `Are you sure you want to permanently delete order "${order.orderNumber}"?\n\nCustomer: ${order.shippingAddress?.fullName || 'N/A'}\nTotal: ${formatPrice(order.totalAmount)}\n\nThis will remove the order record and restore product stock.`;
-    if (!window.confirm(confirmMsg)) return;
+  const handleDeleteOrder = (order: Order, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setOrderToDelete(order);
+  };
 
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeletingOrder(true);
     try {
-      const res = await apiRequest(`/api/admin/orders/${order._id}`, {
+      const res = await apiRequest(`/api/admin/orders/${orderToDelete._id}`, {
         method: 'DELETE',
       });
       if (res.success) {
-        addToast(res.message || `Order ${order.orderNumber} deleted successfully.`, 'success');
-        if (selectedOrder?._id === order._id) {
+        addToast(res.message || `Order ${orderToDelete.orderNumber} deleted successfully.`, 'success');
+        if (selectedOrder?._id === orderToDelete._id) {
           setSelectedOrder(null);
         }
-        setSlipIds((prev) => prev.filter((id) => id !== order._id));
-        setAdminOrders((prev) => prev.filter((o) => o._id !== order._id));
+        setSlipIds((prev) => prev.filter((id) => id !== orderToDelete._id));
+        setAdminOrders((prev) => prev.filter((o) => o._id !== orderToDelete._id));
+        setOrderToDelete(null);
         await loadTabContent();
       }
     } catch (err: any) {
       addToast(err.message || 'Failed to delete order.', 'error');
+    } finally {
+      setIsDeletingOrder(false);
     }
   };
 
-  const handleBulkDeleteOrders = async () => {
+  const handleBulkDeleteOrders = () => {
     if (slipIds.length === 0) return;
-    const confirmMsg = `Are you sure you want to delete ${slipIds.length} selected order(s)?\n\nThis will permanently remove the selected orders and restore product inventory.`;
-    if (!window.confirm(confirmMsg)) return;
+    setIsBulkDeleteModalOpen(true);
+  };
 
+  const confirmBulkDeleteOrders = async () => {
+    if (slipIds.length === 0) return;
+    setIsDeletingOrder(true);
     try {
       const res = await apiRequest('/api/admin/orders/bulk-delete', {
         method: 'POST',
@@ -563,10 +576,13 @@ export const AdminDashboardPage: React.FC = () => {
         if (selectedOrder && slipIds.includes(selectedOrder._id)) {
           setSelectedOrder(null);
         }
+        setIsBulkDeleteModalOpen(false);
         await loadTabContent();
       }
     } catch (err: any) {
       addToast(err.message || 'Bulk delete failed.', 'error');
+    } finally {
+      setIsDeletingOrder(false);
     }
   };
 
@@ -3345,6 +3361,167 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ======================================= */}
+      {/* CUSTOM LUXURY DELETE CONFIRMATION MODAL */}
+      {/* ======================================= */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-2xl border border-black/10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-serif-luxury text-xl font-bold text-[#0D0D0D]">
+                  Delete Order Permanently?
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Order <span className="font-mono-code font-bold text-[#0D0D0D]">{orderToDelete.orderNumber}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+                disabled={isDeletingOrder}
+                className="p-1.5 text-neutral-400 hover:text-black rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-black/5 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Customer:</span>
+                <span className="font-semibold text-[#0D0D0D]">{orderToDelete.shippingAddress?.fullName || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Total Amount:</span>
+                <span className="font-bold text-[#0D0D0D] font-mono-code tabular-nums">{formatPrice(orderToDelete.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Payment Status:</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                  orderToDelete.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                }`}>
+                  {orderToDelete.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Items:</span>
+                <span className="font-semibold text-neutral-700">{orderToDelete.items?.length || 0} timepiece(s)</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Warning:</strong> This order will be permanently erased. Reserved product inventory will be automatically restored back to available stock.
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+                disabled={isDeletingOrder}
+                className="px-4 py-2.5 rounded-lg border border-neutral-300 hover:border-[#0D0D0D] text-xs font-semibold text-neutral-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteOrder}
+                disabled={isDeletingOrder}
+                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors inline-flex items-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                {isDeletingOrder ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting…</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Delete Order</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================= */}
+      {/* BULK DELETE CONFIRMATION MODAL */}
+      {/* ======================================= */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-2xl border border-black/10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-serif-luxury text-xl font-bold text-[#0D0D0D]">
+                  Delete {slipIds.length} Selected Orders?
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Bulk order deletion with automated inventory restoration
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                disabled={isDeletingOrder}
+                className="p-1.5 text-neutral-400 hover:text-black rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-black/5 space-y-2 text-xs">
+              <p className="text-neutral-700">
+                You have selected <strong className="text-[#0D0D0D]">{slipIds.length} orders</strong> for permanent removal.
+              </p>
+              <div className="p-2.5 rounded bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  All selected order records will be permanently erased, and reserved watches will be automatically returned to your available stock.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                disabled={isDeletingOrder}
+                className="px-4 py-2.5 rounded-lg border border-neutral-300 hover:border-[#0D0D0D] text-xs font-semibold text-neutral-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeleteOrders}
+                disabled={isDeletingOrder}
+                className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors inline-flex items-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                {isDeletingOrder ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting…</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Delete {slipIds.length} Orders</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
