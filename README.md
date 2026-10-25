@@ -90,42 +90,45 @@ BinFareedStore is a modern, production-quality watch e-commerce platform special
 
 ---
 
-## 3. Project Architecture
+## 3. Project Architecture (Unified Full-Stack Structure)
 
 ```
 binfareedstore/
-├── package.json               # Root monorepo workspace scripts
-├── .gitignore
-├── backend/                   # Node.js & Express REST Backend
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── .env.example
-│   ├── .env                   # Local development secrets
-│   └── src/
-│       ├── server.ts          # Server entry point & DB bootstrap
-│       ├── app.ts             # Express application & middleware setup
-│       ├── config/            # DB connection & environment configuration
-│       ├── models/            # Mongoose schemas (User, Product, Order, etc.)
-│       ├── middleware/        # Auth, RBAC, CSRF, NoSQL sanitization, Rate limiters, Error handling
-│       ├── routes/            # Modular API routes (auth, products, content, orders, admin)
-│       ├── seed/              # Realistic luxury watch seed data & CLI runner
-│       ├── utils/             # Helpers (slugify, SKU, orderNumber, audit logger, coupon evaluator)
-│       └── __tests__/         # Vitest & Supertest automated integration tests
-├── frontend/                  # React + Vite TypeScript Frontend
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts         # Vite configuration with API proxy
-│   ├── vercel.json            # Vercel deployment rewrites
-│   ├── index.html             # Google Fonts, luxury favicon, meta tags
-│   └── src/
-│       ├── main.tsx           # React entry point
-│       ├── App.tsx            # Routes, layout shell, drawers, code-splitting
-│       ├── index.css          # Tailwind CSS v4 & luxury theme variables
-│       ├── types/             # TypeScript interfaces
-│       ├── lib/               # Typed API client & formatting helpers
-│       ├── context/           # StoreContext (Auth, Cart, Wishlist, Notifications)
-│       ├── components/        # Reusable UI components (Navbar, HeroCarousel, ProductCard, etc.)
-│       └── pages/             # Storefront and Admin pages
+├── package.json               # Single unified dependencies & workspace scripts
+├── tsconfig.json              # Unified TypeScript configuration
+├── tsconfig.server.json       # Standalone server build config
+├── vite.config.ts             # Vite frontend configuration with /api proxy
+├── vercel.json                # Vercel deployment configuration (rewrites to /api & /index.html)
+├── index.html                 # HTML shell, fonts, meta tags
+├── .env                       # Local environment variables
+├── .env.example               # Template environment configuration
+│
+├── api/                       # Vercel Serverless Function entry point
+│   └── index.ts               # Serverless handler forwarding requests to Express
+│
+├── server/                    # Node.js & Express REST Backend
+│   ├── server.ts              # Local standalone server entry point & DB bootstrap
+│   ├── app.ts                 # Express application & middleware setup
+│   ├── config/                # DB connection & environment configuration
+│   ├── models/                # Mongoose schemas (User, Product, Order, etc.)
+│   ├── middleware/            # Auth, RBAC, CSRF, NoSQL sanitization, Rate limiters, Error handling
+│   ├── routes/                # Modular API routes (auth, products, content, orders, admin)
+│   ├── seed/                  # Realistic luxury watch seed data & CLI runner
+│   ├── utils/                 # Helpers (slugify, SKU, orderNumber, audit logger, coupon evaluator)
+│   └── __tests__/             # Vitest & Supertest automated integration tests
+│
+├── src/                       # React + Vite TypeScript Frontend
+│   ├── main.tsx               # React entry point
+│   ├── App.tsx                # Routes, layout shell, drawers, code-splitting
+│   ├── index.css              # Tailwind CSS v4 & luxury theme variables
+│   ├── types/                 # TypeScript interfaces
+│   ├── lib/                   # Typed API client & formatting helpers
+│   ├── context/               # StoreContext (Auth, Cart, Wishlist, Notifications)
+│   ├── components/            # Reusable UI components (Navbar, HeroCarousel, ProductCard, etc.)
+│   └── pages/                 # Storefront and Admin pages
+│
+├── public/                    # Static assets, PWA icons, audio, manifest
+├── uploads/                   # Local uploads directory (fallback)
 └── docs/                      # Database & API Documentation
     ├── API.md
     └── DATABASE.md
@@ -136,46 +139,36 @@ binfareedstore/
 ## 4. Getting Started & Local Installation
 
 ### Prerequisites
-- Node.js (v18 or higher recommended; developed on Node v24)
+- Node.js (v18 or higher recommended; developed on Node v22/v24)
 - npm (v9+)
 
 ### Installation
-Run the root script to install dependencies for both backend and frontend:
+Run a single command at root:
 
 ```bash
-npm run install:all
-```
-
-Or install them individually:
-```bash
-cd backend && npm install
-cd ../frontend && npm install
+npm install
 ```
 
 ---
 
 ## 5. Environment Configuration
 
-### Backend (`backend/.env`)
-Copy `backend/.env.example` to `backend/.env`:
+Copy `.env.example` to `.env`:
 
 ```env
-PORT=5000
+PORT=5005
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5174
 
 # MongoDB Atlas Connection URI
-# Set your MongoDB Atlas cluster URI:
-# MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/binfareedstore?retryWrites=true&w=majority
-# (When left empty in local dev, the backend automatically boots an embedded MongoDB instance and seeds initial data)
-MONGODB_URI=
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/binfareedstore?retryWrites=true&w=majority
 
 # Authentication Secret
-JWT_SECRET=<random 64+ character string — generate your own>
+JWT_SECRET=<random 64+ character string>
 JWT_EXPIRES_IN=7d
 COOKIE_SECURE=false
 
-# Cloudinary Image Storage (Optional - falls back to local /uploads in development)
+# Cloudinary Image Storage (Required on Vercel Serverless)
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -185,18 +178,9 @@ PAYMENT_PROVIDER=safepay
 PAYMENT_API_KEY=
 PAYMENT_WEBHOOK_SECRET=<random string>
 
-# Default Administrator Account for Seed Script
+# Default Administrator Account
 ADMIN_EMAIL=admin@binfareedstore.pk
-ADMIN_PASSWORD=<your own strong password>
-```
-
-### Frontend (`frontend/.env`)
-Copy `frontend/.env.example` to `frontend/.env`:
-
-```env
-# Leave blank in development to leverage the Vite proxy (/api -> http://localhost:5000/api)
-VITE_API_URL=
-VITE_SITE_URL=http://localhost:5173
+ADMIN_PASSWORD=<your strong password>
 ```
 
 ---
@@ -207,7 +191,7 @@ The seed script automatically populates the following demonstration accounts:
 
 | Role | Email | Password | Access |
 |---|---|---|---|
-| **Chief Horologist (Admin)** | `admin@binfareedstore.pk` | set via `ADMIN_PASSWORD` in `backend/.env` | Full Admin Console (`/admin`) & Storefront |
+| **Chief Horologist (Admin)** | `admin@binfareedstore.pk` | set via `ADMIN_PASSWORD` in `.env` | Full Admin Console (`/admin`) & Storefront |
 
 *Tip: The Sign In page (`/login`) includes quick one-click buttons to automatically fill either account for rapid testing.*
 
@@ -218,23 +202,19 @@ The seed script automatically populates the following demonstration accounts:
 
 ---
 
-## 7. Running the Application
+## 7. Running the Application in Development
 
-### Running Both Backend and Frontend in Development
+To start both the Express backend and the Vite frontend simultaneously with a single command:
 
-1. **Start the backend server** (Terminal 1):
-   ```bash
-   npm run dev:backend
-   ```
-   *The server starts on `http://localhost:5000` and automatically connects to MongoDB Atlas or embedded local MongoDB, seeding initial catalog data if empty.*
+```bash
+npm run dev
+```
 
-2. **Start the frontend application** (Terminal 2):
-   ```bash
-   npm run dev:frontend
-   ```
-   *Vite starts the luxury storefront on `http://localhost:5173` with proxying to the backend API.*
+Alternatively, you can run them individually:
+- Frontend only: `npm run dev:client`
+- Backend only: `npm run dev:server`
 
-3. Open your browser and navigate to `http://localhost:5173`.
+Navigate to `http://localhost:5174` in your browser. All `/api` requests are automatically proxied to the backend server running on port `5005`.
 
 ---
 
@@ -256,34 +236,26 @@ To run the automated Vitest and Supertest suite:
 npm run test
 ```
 
-The test suite exercises:
-1. **Business Logic Unit Tests**: Slugification, SKU generation, and coupon logic.
-2. **Authentication & RBAC Tests**: Verifies unauthenticated users receive `401 Unauthorized` and standard customers receive `403 Forbidden` on admin endpoints.
-3. **Catalog & SEO Integration Tests**: Tests multi-faceted filtering, sorting, product details, XML sitemaps, and `robots.txt`.
-4. **Auditable Inventory Tests**: Verifies negative stock reduction is strictly blocked and `StockMovement` ledger entries are recorded.
-5. **Checkout Price Integrity & Concurrency**: Tests that client price tampering is rejected, duplicate requests via `idempotencyKey` do not re-deduct stock, single-execution stock restoration on order cancellation works properly, and concurrent requests for low-stock watches prevent overselling.
-
 ---
 
-## 10. Production Deployment
+## 10. 1-Click Vercel Deployment (Unified Frontend & Backend)
 
-### Frontend Deployment (Vercel)
-1. Link your repository to **Vercel**.
-2. Set the Root Directory to `frontend`.
-3. Set the Framework Preset to `Vite`.
-4. Add the environment variable `VITE_API_URL` pointing to your hosted Node.js backend (e.g. `https://api.binfareedstore.pk`).
-5. `frontend/vercel.json` ensures all client-side routes rewrite seamlessly to `/index.html`.
-
-### Backend Deployment (Render, Railway, or VPS)
-1. Set the Root Directory to `backend`.
-2. Build Command: `npm install && npm run build`
-3. Start Command: `npm start`
-4. Configure the environment variables in your hosting dashboard:
+Because the project is unified:
+1. Push your code to GitHub.
+2. Go to [Vercel](https://vercel.com) and click **"Add New Project"** -> import your GitHub repository.
+3. Keep default settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `./` (Default root)
+   - **Build Command**: `npm run build` (or `vite build`)
+   - **Output Directory**: `dist`
+4. In **Environment Variables**, add:
    - `NODE_ENV=production`
-   - `PORT=5000`
-   - `FRONTEND_URL=https://binfareedstore.pk`
-   - `MONGODB_URI=mongodb+srv://...` (Your MongoDB Atlas connection string)
-   - `JWT_SECRET=your_production_64_byte_random_secret`
-   - `COOKIE_SECURE=true`
+   - `MONGODB_URI` (Your MongoDB Atlas connection string)
+   - `JWT_SECRET` (A strong 64+ character random secret)
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-   - `PAYMENT_WEBHOOK_SECRET`
+   - `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+   - `PAYMENT_PROVIDER`, `PAYMENT_API_KEY`, `PAYMENT_WEBHOOK_SECRET`
+5. Click **Deploy**!
+   - Vercel automatically deploys your React frontend from `dist`.
+   - Vercel automatically creates a Serverless Function from `api/index.ts` handling all `/api/*` endpoints.
+   - Frontend and Backend run on the **same domain**, so there are **zero CORS issues**!
