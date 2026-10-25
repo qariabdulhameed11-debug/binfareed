@@ -64,5 +64,6 @@ export function errorHandler(
   res.status(500).json({
     success: false,
     message: 'An unexpected server error occurred. Please try again later.',
+    error: err instanceof Error ? err.message : String(err),
   });
 }

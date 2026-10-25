@@ -198,7 +198,8 @@ function errorHandler(err, _req, res, _next) {
   }
   res.status(500).json({
     success: false,
-    message: "An unexpected server error occurred. Please try again later."
+    message: "An unexpected server error occurred. Please try again later.",
+    error: err instanceof Error ? err.message : String(err)
   });
 }
 
@@ -4141,13 +4142,26 @@ app.use((req, _res, next) => {
   }
   next();
 });
-app.get(["/api/health", "/health"], (_req, res) => {
+var lastDbError = null;
+app.get(["/api/health", "/health"], async (req, res) => {
+  if (req.query.connect === "true" && mongoose19.connection.readyState === 0) {
+    try {
+      await connectDatabase();
+      lastDbError = null;
+    } catch (err) {
+      lastDbError = err?.message || String(err);
+    }
+  }
+  const rawUri = env.MONGODB_URI || "";
+  const maskedUri = rawUri ? rawUri.replace(/(:\/\/[^:]+:)([^@]+)(@)/, "$1***$3") : "none";
   res.json({
     success: true,
     service: "BinFareedStore API",
     status: "operational",
     dbState: mongoose19.connection.readyState,
     dbConnected: mongoose19.connection.readyState >= 1,
+    dbError: lastDbError,
+    dbUri: maskedUri,
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
@@ -4157,7 +4171,9 @@ app.use(async (_req, _res, next) => {
     try {
       await connectDatabase();
       isDbConnected = true;
+      lastDbError = null;
     } catch (err) {
+      lastDbError = err?.message || String(err);
       console.error("[DB Auto-Connect Error]:", err);
     }
   }

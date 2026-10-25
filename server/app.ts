@@ -58,14 +58,30 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Immediate Health Check - Responds without waiting for DB so we can monitor server status
-app.get(['/api/health', '/health'], (_req, res) => {
+let lastDbError: string | null = null;
+
+// Health Check - Responds immediately or tests DB connection with ?connect=true
+app.get(['/api/health', '/health'], async (req, res) => {
+  if (req.query.connect === 'true' && mongoose.connection.readyState === 0) {
+    try {
+      await connectDatabase();
+      lastDbError = null;
+    } catch (err: any) {
+      lastDbError = err?.message || String(err);
+    }
+  }
+  
+  const rawUri = env.MONGODB_URI || '';
+  const maskedUri = rawUri ? rawUri.replace(/(:\/\/[^:]+:)([^@]+)(@)/, '$1***$3') : 'none';
+
   res.json({
     success: true,
     service: 'BinFareedStore API',
     status: 'operational',
     dbState: mongoose.connection.readyState,
     dbConnected: mongoose.connection.readyState >= 1,
+    dbError: lastDbError,
+    dbUri: maskedUri,
     timestamp: new Date().toISOString(),
   });
 });
@@ -77,7 +93,9 @@ app.use(async (_req, _res, next) => {
     try {
       await connectDatabase();
       isDbConnected = true;
-    } catch (err) {
+      lastDbError = null;
+    } catch (err: any) {
+      lastDbError = err?.message || String(err);
       console.error('[DB Auto-Connect Error]:', err);
     }
   }
