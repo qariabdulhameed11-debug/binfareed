@@ -45,6 +45,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   }
 
   if (origin) {
+    const isVercel = origin.endsWith('.vercel.app');
     const allowedOrigins = [
       env.FRONTEND_URL,
       'http://localhost:5173',
@@ -54,7 +55,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
       'http://localhost:5000',
       'http://localhost:5005',
     ];
-    if (allowedOrigins.includes(origin)) {
+    if (isVercel || allowedOrigins.includes(origin)) {
       return next();
     }
     res.status(403).json({

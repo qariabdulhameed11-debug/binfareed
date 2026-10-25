@@ -29,15 +29,16 @@ app.use(
 // CORS with credentials support
 app.use(
   cors({
-    origin: [
-      env.FRONTEND_URL,
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:5174',
-      'http://127.0.0.1:5174',
-      'http://localhost:5000',
-      'http://localhost:5005',
-    ],
+    origin: (requestOrigin, callback) => {
+      if (!requestOrigin) return callback(null, true);
+      const isVercel = requestOrigin.endsWith('.vercel.app');
+      const isLocal =
+        requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1');
+      if (isVercel || isLocal || (env.FRONTEND_URL && requestOrigin === env.FRONTEND_URL)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

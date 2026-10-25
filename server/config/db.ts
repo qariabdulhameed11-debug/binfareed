@@ -25,7 +25,7 @@ export async function connectDatabase(): Promise<{ uri: string; isMemory: boolea
 
     mongoose.set('strictQuery', true);
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000,
     });
 
     console.log(`[DB] Connected to MongoDB (${isUsingMemoryServer ? 'Embedded Memory Server' : 'MongoDB Atlas / External Cluster'})`);
