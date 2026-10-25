@@ -445,6 +445,86 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const handleApproveOrder = async (order: Order, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      const res = await apiRequest(`/api/admin/orders/${order._id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          fulfillmentStatus: 'confirmed',
+          note: 'Order approved and confirmed by Administrator',
+        }),
+      });
+      if (res.success) {
+        addToast(`Order ${order.orderNumber} approved successfully!`, 'success');
+        setAdminOrders((prev) =>
+          prev.map((o) => (o._id === order._id ? res.order : o))
+        );
+        setRecentOrders((prev) =>
+          prev.map((o) => (o._id === order._id ? res.order : o))
+        );
+        if (selectedOrder?._id === order._id) {
+          setSelectedOrder(res.order);
+          setOrderNextFulfillment('confirmed');
+        }
+        await loadTabContent();
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Could not approve order.', 'error');
+    }
+  };
+
+  const handleMarkPaid = async (order: Order, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      const res = await apiRequest(`/api/admin/orders/${order._id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          paymentStatus: 'paid',
+          note: 'Marked as paid by Administrator',
+        }),
+      });
+      if (res.success) {
+        addToast(`Order ${order.orderNumber} marked as Paid!`, 'success');
+        setAdminOrders((prev) =>
+          prev.map((o) => (o._id === order._id ? res.order : o))
+        );
+        if (selectedOrder?._id === order._id) {
+          setSelectedOrder(res.order);
+          setOrderNextPayment('paid');
+        }
+        await loadTabContent();
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Could not mark order as paid.', 'error');
+    }
+  };
+
+  const handleBulkApproveOrders = async () => {
+    if (slipIds.length === 0) return;
+    try {
+      let approvedCount = 0;
+      for (const id of slipIds) {
+        const order = adminOrders.find((o) => o._id === id);
+        if (order && order.fulfillmentStatus === 'pending') {
+          await apiRequest(`/api/admin/orders/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              fulfillmentStatus: 'confirmed',
+              note: 'Bulk approved by Administrator',
+            }),
+          });
+          approvedCount++;
+        }
+      }
+      addToast(`${approvedCount} order(s) approved successfully!`, 'success');
+      setSlipIds([]);
+      await loadTabContent();
+    } catch (err: any) {
+      addToast(err.message || 'Bulk approve failed.', 'error');
+    }
+  };
+
   const handleDeleteOrder = async (order: Order) => {
     const confirmMsg = `Are you sure you want to permanently delete order "${order.orderNumber}"?\n\nCustomer: ${order.shippingAddress?.fullName || 'N/A'}\nTotal: ${formatPrice(order.totalAmount)}\n\nThis will remove the order record and restore product stock.`;
     if (!window.confirm(confirmMsg)) return;
@@ -1386,59 +1466,89 @@ export const AdminDashboardPage: React.FC = () => {
         {/* ======================================= */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
-            <div className="bg-white p-5 rounded-xl border border-black/8 flex flex-wrap items-center justify-between gap-4">
+            {/* Quick Status Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { id: 'all', label: 'All Orders' },
+                { id: 'pending', label: 'Pending / New' },
+                { id: 'confirmed', label: 'Approved' },
+                { id: 'processing', label: 'Processing' },
+                { id: 'shipped', label: 'Shipped' },
+                { id: 'delivered', label: 'Delivered' },
+                { id: 'cancelled', label: 'Cancelled' },
+              ].map((tab) => {
+                const isActive = orderStatusFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setOrderStatusFilter(tab.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-[#0D0D0D] text-[#FAF8F5] shadow-sm'
+                        : 'bg-white text-neutral-600 hover:text-black hover:bg-neutral-100 border border-black/5'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="bg-white p-4 sm:p-5 rounded-xl border border-black/8 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <input
-                  type="text"
-                  value={orderSearch}
-                  onChange={(e) => setOrderSearch(e.target.value)}
-                  placeholder="Search by order no., name or phone…"
-                  className="px-3.5 py-2 text-xs border border-neutral-300 rounded-lg w-64"
-                />
-                <select
-                  value={orderStatusFilter}
-                  onChange={(e) => setOrderStatusFilter(e.target.value)}
-                  className="px-3.5 py-2 text-xs border border-neutral-300 rounded-lg bg-white"
-                >
-                  <option value="all">All Orders</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="processing">Processing</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="refunded">Refunded</option>
-                </select>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={orderSearch}
+                    onChange={(e) => setOrderSearch(e.target.value)}
+                    placeholder="Search by order no., name, phone or city…"
+                    className="pl-8 pr-3.5 py-2 text-xs border border-neutral-300 rounded-lg w-72 focus:outline-none focus:border-[#C5A059]"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled={slipIds.length === 0}
-                onClick={() => openSlips(slipIds)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-black/15 hover:border-[#0D0D0D] text-xs font-semibold disabled:opacity-40 transition-colors"
-                title={slipIds.length ? '' : 'Tick orders in the list first'}
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print slips{slipIds.length ? ` (${slipIds.length})` : ''}</span>
-              </button>
-              <button
-                type="button"
-                disabled={slipIds.length === 0}
-                onClick={handleBulkDeleteOrders}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold disabled:opacity-40 transition-colors"
-                title={slipIds.length ? '' : 'Tick orders in the list first to delete'}
-              >
-                <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                <span>Delete selected{slipIds.length ? ` (${slipIds.length})` : ''}</span>
-              </button>
-              <a
-                href="/api/admin/reports/export/orders"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0D0D0D] text-[#FAF8F5] text-xs uppercase tracking-wider font-semibold rounded-lg"
-              >
-                <Download className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span>Download Orders (Excel)</span>
-              </a>
+                {slipIds.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleBulkApproveOrders}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors"
+                      title="Approve all selected pending orders"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Approve Selected ({slipIds.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBulkDeleteOrders}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 text-xs font-semibold transition-colors"
+                      title="Permanently delete selected orders and restore inventory"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Selected ({slipIds.length})</span>
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  disabled={slipIds.length === 0}
+                  onClick={() => openSlips(slipIds)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-black/15 hover:border-[#0D0D0D] text-xs font-semibold disabled:opacity-40 transition-colors"
+                  title={slipIds.length ? '' : 'Tick orders in the list first'}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Slips{slipIds.length ? ` (${slipIds.length})` : ''}</span>
+                </button>
+                <a
+                  href="/api/admin/reports/export/orders"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0D0D0D] text-[#FAF8F5] text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#C5A059] hover:text-[#0D0D0D] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Excel</span>
+                </a>
               </div>
             </div>
 
@@ -1559,15 +1669,36 @@ export const AdminDashboardPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="p-3.5 pr-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <div className="inline-flex items-center gap-2">
+                          <div className="inline-flex items-center gap-1.5">
+                            {o.fulfillmentStatus === 'pending' && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleApproveOrder(o, e)}
+                                aria-label={`Approve order ${o.orderNumber}`}
+                                title="Approve this order"
+                                className="h-8 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm transition-colors"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Approve</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={openOrder}
+                              className="h-8 px-3 rounded-lg border border-neutral-300 hover:border-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#FAF8F5] text-[11px] font-semibold inline-flex items-center gap-1 transition-colors"
+                              title="Manage order details & shipping"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              <span>Manage</span>
+                            </button>
                             <button
                               type="button"
                               onClick={() => setWaOrder(o)}
                               aria-label={`WhatsApp ${o.shippingAddress.fullName}`}
                               title={`Message ${o.shippingAddress.fullName} on WhatsApp`}
-                              className="relative inline-flex items-center justify-center w-9 h-9 rounded-lg border border-[#25D366]/40 text-[#128C7E] hover:bg-[#25D366] hover:text-[#0D0D0D] hover:border-[#25D366] transition-colors"
+                              className="relative inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#25D366]/40 text-[#128C7E] hover:bg-[#25D366] hover:text-[#0D0D0D] hover:border-[#25D366] transition-colors"
                             >
-                              <MessageCircle className="w-4 h-4" />
+                              <MessageCircle className="w-3.5 h-3.5" />
                               {(o.whatsappLog?.length || 0) > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#075E54] text-white text-[9px] font-bold flex items-center justify-center">
                                   {o.whatsappLog!.length}
@@ -1579,25 +1710,18 @@ export const AdminDashboardPage: React.FC = () => {
                               onClick={() => openSlips([o._id])}
                               aria-label={`Print shipping slip for ${o.orderNumber}`}
                               title="Print shipping slip"
-                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-black/15 text-neutral-600 hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-black/15 text-neutral-600 hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors"
                             >
-                              <Printer className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={openOrder}
-                              className="h-9 px-4 rounded-lg border border-black/15 hover:border-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#FAF8F5] text-[12px] font-semibold transition-colors"
-                            >
-                              Open
+                              <Printer className="w-3.5 h-3.5" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteOrder(o)}
                               aria-label={`Delete order ${o.orderNumber}`}
-                              title="Delete order permanently"
-                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-red-200 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
+                              title="Permanently delete order"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-red-200 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -2955,151 +3079,268 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 space-y-6">
+            {/* Header */}
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-200 pb-4">
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#9E7B36] font-bold">
-                  Order Fulfillment Management
-                </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] uppercase tracking-widest text-[#9E7B36] font-bold">
+                    Order Management
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    ORDER_STATUS_STYLE[selectedOrder.fulfillmentStatus]?.chip || 'bg-neutral-100 text-neutral-700'
+                  }`}>
+                    {ORDER_STATUS_STYLE[selectedOrder.fulfillmentStatus]?.label || selectedOrder.fulfillmentStatus}
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    selectedOrder.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                  }`}>
+                    {selectedOrder.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                  </span>
+                </div>
                 <h3 className="font-mono-code text-2xl font-bold text-[#0D0D0D]">
                   {selectedOrder.orderNumber}
                 </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Placed on {formatDateTime(selectedOrder.createdAt)}
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  to={`/order-confirmation/${selectedOrder.orderNumber}`}
-                  target="_blank"
-                  className="px-3 py-1.5 border border-neutral-300 rounded text-xs font-semibold"
-                >
-                  Printable Invoice ↗
-                </Link>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedOrder.fulfillmentStatus === 'pending' && (
+                  <button
+                    type="button"
+                    onClick={() => handleApproveOrder(selectedOrder)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Approve Order
+                  </button>
+                )}
+                {selectedOrder.paymentStatus !== 'paid' && (
+                  <button
+                    type="button"
+                    onClick={() => handleMarkPaid(selectedOrder)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#9E7B36] hover:bg-[#C5A059] text-white text-xs font-bold shadow-sm transition-colors"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setWaOrder(selectedOrder)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#25D366] hover:bg-[#1EBE5A] text-[#0D0D0D] text-xs font-bold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1EBE5A] text-[#0D0D0D] text-xs font-bold"
                 >
                   <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
                 </button>
                 <button
                   type="button"
                   onClick={() => openSlips([selectedOrder._id])}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-neutral-300 hover:border-[#0D0D0D] text-xs font-semibold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-300 hover:border-[#0D0D0D] text-xs font-semibold"
                 >
-                  <Printer className="w-3.5 h-3.5" /> Print Slip
+                  <Printer className="w-3.5 h-3.5" /> Print
                 </button>
+                <Link
+                  to={`/order-confirmation/${selectedOrder.orderNumber}`}
+                  target="_blank"
+                  className="px-3 py-1.5 border border-neutral-300 rounded-lg text-xs font-semibold hover:border-black"
+                >
+                  Invoice ↗
+                </Link>
                 <button
                   type="button"
                   onClick={() => handleDeleteOrder(selectedOrder)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-red-200 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 text-xs font-semibold transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 text-xs font-semibold transition-colors"
                   title="Permanently delete this order"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete Order
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedOrder(null)}
-                  className="p-1.5 text-neutral-400 hover:text-black"
+                  className="p-1.5 text-neutral-400 hover:text-black ml-1"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleUpdateOrderStatus} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-bold block mb-1">Fulfillment Status</label>
-                  <select
-                    value={orderNextFulfillment}
-                    onChange={(e) => setOrderNextFulfillment(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled (Auto-Restores Stock)</option>
-                    <option value="refunded">Refunded (Auto-Restores Stock)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold block mb-1">Payment Status</label>
-                  <select
-                    value={orderNextPayment}
-                    onChange={(e) => setOrderNextPayment(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold block mb-1">Courier Partner</label>
-                  <select
-                    value={orderCourier || 'Leopards'}
-                    onChange={(e) => setOrderCourier(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white"
-                  >
-                    <option value="Leopards">Leopards Courier</option>
-                    <option value="TCS">TCS</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold block mb-1">Tracking Number</label>
-                  <input
-                    type="text"
-                    value={orderTracking}
-                    onChange={(e) => setOrderTracking(e.target.value)}
-                    placeholder="TCS-88990011"
-                    className="w-full px-3 py-2 border border-neutral-300 rounded font-mono-code"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="font-bold block mb-1">Status Update Note</label>
-                  <input
-                    type="text"
-                    value={orderNote}
-                    onChange={(e) => setOrderNote(e.target.value)}
-                    placeholder="Optional note recorded in chronological order history..."
-                    className="w-full px-3 py-2 border border-neutral-300 rounded"
-                  />
-                </div>
+            {/* Customer & Shipping Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-black/5 space-y-2">
+                <span className="font-bold uppercase tracking-wider text-neutral-500 text-[10px]">Customer & Contact</span>
+                <p className="font-bold text-sm text-[#0D0D0D]">{selectedOrder.shippingAddress?.fullName}</p>
+                <p className="text-neutral-700">
+                  <span className="text-neutral-500">Phone: </span>
+                  <a href={`tel:${selectedOrder.shippingAddress?.phone}`} className="font-semibold text-[#0D0D0D] hover:underline">
+                    {selectedOrder.shippingAddress?.phone}
+                  </a>
+                </p>
+                <p className="text-neutral-700">
+                  <span className="text-neutral-500">Email: </span>
+                  <a href={`mailto:${selectedOrder.shippingAddress?.email}`} className="text-neutral-800 hover:underline">
+                    {selectedOrder.shippingAddress?.email}
+                  </a>
+                </p>
+                {selectedOrder.shippingAddress?.notes && (
+                  <p className="text-neutral-600 bg-white p-2 rounded border border-black/5 mt-1">
+                    <span className="font-semibold text-neutral-500">Note: </span>
+                    {selectedOrder.shippingAddress.notes}
+                  </p>
+                )}
               </div>
 
-              {selectedOrder.inventoryRestored && (
-                <div className="p-3 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>
-                    Inventory for this cancelled/refunded order has already been restored to the vault (Protected against duplicate restoration).
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-black/5 space-y-2">
+                <span className="font-bold uppercase tracking-wider text-neutral-500 text-[10px]">Shipping Destination & Payment</span>
+                <p className="text-neutral-800 font-medium leading-relaxed">
+                  {selectedOrder.shippingAddress?.streetAddress},<br />
+                  {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.province} {selectedOrder.shippingAddress?.postalCode}
+                </p>
+                <div className="pt-1 flex items-center justify-between border-t border-black/5">
+                  <span className="text-neutral-500">Payment Method:</span>
+                  <span className="font-semibold text-[#0D0D0D] uppercase">
+                    {PAYMENT_METHOD_LABEL[selectedOrder.paymentMethod] || selectedOrder.paymentMethod}
                   </span>
                 </div>
-              )}
+                <div className="flex items-center justify-between">
+                  <span className="text-neutral-500">Total Order Amount:</span>
+                  <span className="font-bold text-sm text-[#0D0D0D] font-mono-code tabular-nums">
+                    {formatPrice(selectedOrder.totalAmount)}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-[#0D0D0D] hover:bg-[#C5A059] text-[#FAF8F5] hover:text-[#0D0D0D] font-bold uppercase tracking-widest rounded-lg transition-colors"
-              >
-                Update Order & Record History
-              </button>
-            </form>
+            {/* Ordered Watch Items */}
+            <div className="space-y-2 text-xs">
+              <span className="font-bold uppercase tracking-wider text-neutral-500 text-[10px]">Order Items ({selectedOrder.items?.length || 0})</span>
+              <div className="border border-neutral-200 rounded-xl overflow-hidden divide-y divide-neutral-100">
+                {(selectedOrder.items || []).map((item, idx) => (
+                  <div key={idx} className="p-3 flex items-center gap-3 bg-white hover:bg-neutral-50">
+                    <img
+                      src={item.image || '/brand/logo-mark.webp'}
+                      alt={item.name}
+                      className="w-12 h-12 rounded-lg object-cover border border-black/5 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-neutral-900 text-xs truncate">{item.name}</p>
+                      <p className="text-[11px] text-neutral-500">
+                        SKU: <span className="font-mono-code">{item.sku}</span> {item.variantName ? `• ${item.variantName}` : ''}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-semibold text-neutral-900 tabular-nums">{formatPrice(item.unitPrice)}</p>
+                      <p className="text-[11px] text-neutral-500">Qty: {item.quantity}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Logistics & Status Transition Form */}
+            <div className="p-4 sm:p-5 rounded-xl border border-neutral-200 bg-[#FAF8F5]/60 space-y-4 text-xs">
+              <span className="font-bold uppercase tracking-wider text-neutral-700 text-[11px] block">
+                Update Status & Courier Logistics
+              </span>
+              <form onSubmit={handleUpdateOrderStatus} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold block mb-1">Fulfillment Status</label>
+                    <select
+                      value={orderNextFulfillment}
+                      onChange={(e) => setOrderNextFulfillment(e.target.value)}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed / Approved</option>
+                      <option value="processing">Processing / In Preparation</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled (Auto-Restores Inventory)</option>
+                      <option value="refunded">Refunded (Auto-Restores Inventory)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold block mb-1">Payment Status</label>
+                    <select
+                      value={orderNextPayment}
+                      onChange={(e) => setOrderNextPayment(e.target.value)}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                    >
+                      <option value="pending">Pending / Unpaid</option>
+                      <option value="paid">Paid</option>
+                      <option value="failed">Failed</option>
+                      <option value="refunded">Refunded</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold block mb-1">Courier Partner</label>
+                    <select
+                      value={orderCourier || 'Leopards'}
+                      onChange={(e) => setOrderCourier(e.target.value)}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                    >
+                      <option value="Leopards">Leopards Courier</option>
+                      <option value="TCS">TCS</option>
+                      <option value="Trax">Trax Logistics</option>
+                      <option value="PostEx">PostEx</option>
+                      <option value="M&P">M&P Express</option>
+                      <option value="Rider">Rider</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold block mb-1">Tracking Number</label>
+                    <input
+                      type="text"
+                      value={orderTracking}
+                      onChange={(e) => setOrderTracking(e.target.value)}
+                      placeholder="e.g. LE-99881122 or TCS-5544"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg font-mono-code bg-white"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="font-bold block mb-1">Status Update Note</label>
+                    <input
+                      type="text"
+                      value={orderNote}
+                      onChange={(e) => setOrderNote(e.target.value)}
+                      placeholder="Optional note recorded in chronological order history..."
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+
+                {selectedOrder.inventoryRestored && (
+                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      Inventory for this order has been safely restored to stock (protected against double-restoration).
+                    </span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#0D0D0D] hover:bg-[#C5A059] text-[#FAF8F5] hover:text-[#0D0D0D] font-bold uppercase tracking-wider rounded-lg transition-colors text-xs"
+                >
+                  Save Changes & Update Order
+                </button>
+              </form>
+            </div>
 
             {/* Chronological History */}
-            <div className="space-y-2 pt-3 border-t border-neutral-200 text-xs">
-              <h4 className="font-bold uppercase tracking-wider">Order Status History</h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {selectedOrder.statusHistory.map((h, i) => (
-                  <div key={i} className="p-2.5 rounded bg-[#FAF8F5] border border-black/5">
-                    <span className="font-bold uppercase">{h.status}</span> •{' '}
+            <div className="space-y-2 pt-2 border-t border-neutral-200 text-xs">
+              <h4 className="font-bold uppercase tracking-wider text-neutral-600 text-[11px]">Chronological Status History</h4>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                {(selectedOrder.statusHistory || []).map((h, i) => (
+                  <div key={i} className="p-2.5 rounded-lg bg-[#FAF8F5] border border-black/5 text-[11px]">
+                    <span className="font-bold uppercase text-[#0D0D0D]">{h.status}</span> •{' '}
                     <span className="text-neutral-500">{formatDateTime(h.timestamp)}</span>
-                    <p className="text-neutral-700 mt-0.5">{h.note}</p>
+                    {h.note && <p className="text-neutral-700 mt-0.5">{h.note}</p>}
                   </div>
                 ))}
               </div>
