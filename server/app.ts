@@ -60,17 +60,8 @@ app.use((req, _res, next) => {
 
 let lastDbError: string | null = null;
 
-// Health Check - Responds immediately or tests DB connection with ?connect=true
-app.get(['/api/health', '/health'], async (req, res) => {
-  if (req.query.connect === 'true' && mongoose.connection.readyState === 0) {
-    try {
-      await connectDatabase();
-      lastDbError = null;
-    } catch (err: any) {
-      lastDbError = err?.message || String(err);
-    }
-  }
-  
+// Health Check - Responds immediately with server & DB status
+app.get(['/api/health', '/health'], async (_req, res) => {
   const rawUri = env.MONGODB_URI || '';
   const maskedUri = rawUri ? rawUri.replace(/(:\/\/[^:]+:)([^@]+)(@)/, '$1***$3') : 'none';
 
@@ -79,24 +70,53 @@ app.get(['/api/health', '/health'], async (req, res) => {
     service: 'BinFareedStore API',
     status: 'operational',
     dbState: mongoose.connection.readyState,
-    dbConnected: mongoose.connection.readyState >= 1,
+    dbConnected: mongoose.connection.readyState === 1,
     dbError: lastDbError,
     dbUri: maskedUri,
     timestamp: new Date().toISOString(),
   });
 });
 
+// Diagnostic DB Test Endpoint
+app.get(['/api/test-db', '/test-db'], async (_req, res) => {
+  const start = Date.now();
+  try {
+    const result = await connectDatabase();
+    res.json({
+      success: true,
+      timeMs: Date.now() - start,
+      dbState: mongoose.connection.readyState,
+      isMemory: result.isMemory,
+      message: 'MongoDB Atlas connected successfully from Vercel!'
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      timeMs: Date.now() - start,
+      dbState: mongoose.connection.readyState,
+      errorName: err.name,
+      errorMessage: err.message,
+    });
+  }
+});
+
 // Auto-connect database for all functional routes
-let isDbConnected = false;
-app.use(async (_req, _res, next) => {
-  if (!isDbConnected || mongoose.connection.readyState === 0) {
+app.use(async (req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/health' || req.path === '/api/test-db' || req.path === '/test-db') {
+    return next();
+  }
+  if (mongoose.connection.readyState !== 1) {
     try {
       await connectDatabase();
-      isDbConnected = true;
       lastDbError = null;
     } catch (err: any) {
       lastDbError = err?.message || String(err);
       console.error('[DB Auto-Connect Error]:', err);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection failed. Please ensure MongoDB Atlas Network Access allows 0.0.0.0/0.',
+        error: err.message,
+      });
     }
   }
   next();
