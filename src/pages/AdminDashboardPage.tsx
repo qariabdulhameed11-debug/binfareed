@@ -281,7 +281,7 @@ export const AdminDashboardPage: React.FC = () => {
         dialColor: 'Obsidian Black',
         crystal: 'Sapphire Crystal',
         waterResistance: '10 ATM (100m)',
-        warranty: '2-Year Official Warranty',
+        warranty: 'Authenticity Guaranteed',
         origin: 'Swiss Made',
       },
     });

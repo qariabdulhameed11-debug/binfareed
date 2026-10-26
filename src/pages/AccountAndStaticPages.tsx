@@ -973,7 +973,7 @@ export const PolicyPage: React.FC<{ type: 'shipping' | 'privacy' | 'terms' | 'co
 
   useEffect(() => {
     const titles = {
-      shipping: 'Shipping, Returns & Warranty Policy — BinFareedStore',
+      shipping: 'Shipping & Returns Policy — BinFareedStore',
       privacy: 'Privacy Policy — BinFareedStore',
       terms: 'Terms of Service — BinFareedStore',
       contact: 'Help & Showroom — BinFareedStore',
@@ -1012,7 +1012,7 @@ export const PolicyPage: React.FC<{ type: 'shipping' | 'privacy' | 'terms' | 'co
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#C5A059] shrink-0" />
-                <span>{settings?.contactEmail || 'concierge@binfareedstore.pk'}</span>
+                <a href={`mailto:${settings?.contactEmail || 'bffareedstore@gmail.com'}`} className="hover:text-[#C5A059] transition-colors">{settings?.contactEmail || 'bffareedstore@gmail.com'}</a>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-[#C5A059] shrink-0" />
@@ -1079,7 +1079,7 @@ export const PolicyPage: React.FC<{ type: 'shipping' | 'privacy' | 'terms' | 'co
         </span>
         <h1 className="font-serif-luxury text-4xl font-semibold text-[#0D0D0D]">
           {type === 'shipping'
-            ? 'Shipping, Returns & Official Warranty'
+            ? 'Shipping & Returns Policy'
             : type === 'privacy'
             ? 'Privacy & Data Protection Policy'
             : 'Terms of Service & Authenticity Guarantee'}
@@ -1103,10 +1103,10 @@ export const PolicyPage: React.FC<{ type: 'shipping' | 'privacy' | 'terms' | 'co
                   'We offer a 7-day inspection and exchange guarantee from the date of delivery for unworn watches with factory seals intact.'}
               </p>
               <h3 className="font-serif-luxury text-xl font-bold text-[#0D0D0D]">
-                3. 2-Year Official Mechanical & Movement Warranty
+                3. 100% Authenticity Guarantee
               </h3>
               <p>
-                Every timepiece purchased from BinFareedStore includes a 2-year official warranty covering internal movement defects and manufacturing craftsmanship.
+                Every timepiece curated by BinFareedStore is guaranteed authentic with verified horological craftsmanship, pristine collector packaging, and quality inspection.
               </p>
             </>
           )}

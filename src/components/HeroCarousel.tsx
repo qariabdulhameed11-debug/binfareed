@@ -268,7 +268,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:divide-x divide-white/10 text-[11px] text-[#FAF8F5]/70">
           {[
             { Icon: Award, text: '100% Authenticated Horology' },
-            { Icon: Shield, text: '2-Year Official Warranty' },
+            { Icon: Shield, text: 'Tamper-Evident Luxury Vault Packaging' },
             { Icon: Truck, text: 'Insured Express Delivery Nationwide' },
           ].map(({ Icon, text }) => (
             <div key={text} className="flex items-center justify-center gap-3">

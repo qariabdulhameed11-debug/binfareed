@@ -842,7 +842,7 @@ export const CheckoutPage: React.FC = () => {
 
             <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-500">
               <ShieldCheck className="w-4 h-4 text-[#9E7B36]" />
-              <span>Secure checkout • 2-year warranty included</span>
+              <span>Secure checkout • 100% Authentic Horology</span>
             </div>
           </div>
         </div>

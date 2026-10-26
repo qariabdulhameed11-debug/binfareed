@@ -115,7 +115,7 @@ const HomepageContentSchema = new Schema<IHomepageContent>(
       description: {
         type: String,
         default:
-          'Experience precision automatic engineering with complimentary insured express delivery and a 2-year official BinFareedStore warranty.',
+          'Experience precision automatic engineering with complimentary insured express delivery and 100% genuine craftsmanship guarantee.',
       },
       image: {
         type: String,
@@ -158,9 +158,9 @@ const HomepageContentSchema = new Schema<IHomepageContent>(
             description: 'Every timepiece is inspected by master watch technicians prior to dispatch.',
           },
           {
-            label: 'Official Warranty',
-            value: '2-Year Coverage',
-            description: 'Comprehensive movement and craftsmanship protection with dedicated service support.',
+            label: 'Inspection Guarantee',
+            value: '7-Day Policy',
+            description: 'Hassle-free inspection and exchange guarantee on all unworn timepieces.',
           },
           {
             label: 'Insured Delivery',

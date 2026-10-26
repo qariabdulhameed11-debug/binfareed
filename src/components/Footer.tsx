@@ -105,7 +105,7 @@ export const Footer: React.FC = () => {
             </Link>
 
             <p className="text-sm text-[#FAF8F5]/70 leading-relaxed max-w-sm">
-              Curating authenticated luxury, automatic, and contemporary timepieces with insured nationwide delivery and a 2-year official warranty.
+              Curating authenticated luxury, automatic, and contemporary timepieces with insured nationwide delivery and 100% genuine craftsmanship.
             </p>
 
             <div className="space-y-2 pt-2 text-xs text-[#FAF8F5]/75">
@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#C5A059] shrink-0" />
-                <span>{settings?.contactEmail || 'concierge@binfareedstore.pk'}</span>
+                <a href={`mailto:${settings?.contactEmail || 'bffareedstore@gmail.com'}`} className="hover:text-[#C5A059] transition-colors">{settings?.contactEmail || 'bffareedstore@gmail.com'}</a>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ export const Footer: React.FC = () => {
           {/* Legal & Authenticity */}
           <div className="space-y-4">
             <h4 className="text-xs uppercase tracking-[0.2em] text-[#C5A059] font-semibold">
-              Legal & Warranty
+              Legal & Policies
             </h4>
             <ul className="space-y-2.5 text-sm text-[#FAF8F5]/75">
               <li>
@@ -213,7 +213,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/shipping-returns" className="hover:text-[#C5A059] transition-colors">
-                  2-Year Official Warranty
+                  Authenticity Guarantee
                 </Link>
               </li>
             </ul>

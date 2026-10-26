@@ -102,7 +102,7 @@ const StoreSettingsSchema = new Schema<IStoreSettings>(
       type: String,
       default: 'Meezan Bank Limited — Account Title: BinFareed Horology Pvt Ltd — IBAN: PK36MEZN0001234567890102',
     },
-    contactEmail: { type: String, default: 'concierge@binfareedstore.pk' },
+    contactEmail: { type: String, default: 'bffareedstore@gmail.com' },
     contactPhone: { type: String, default: '+92 301 7713866' },
     whatsappNumber: { type: String, default: '+92 301 7713866' },
     whatsappOrderingEnabled: { type: Boolean, default: true },
@@ -164,17 +164,17 @@ const StoreSettingsSchema = new Schema<IStoreSettings>(
       returnPolicy: {
         type: String,
         default:
-          'We offer a 7-day inspection and exchange guarantee from the date of delivery. Timepieces must remain unworn, with all protective factory films intact, original presentation box, warranty card, and tags included.',
+          'We offer a 7-day inspection and exchange guarantee from the date of delivery. Timepieces must remain unworn, with all protective factory films intact, original presentation box, and tags included.',
       },
       privacyPolicy: {
         type: String,
         default:
-          'BinFareedStore respects your privacy. Customer contact, delivery, and order records are encrypted and strictly used for order fulfillment, warranty registration, and requested concierge communications.',
+          'BinFareedStore respects your privacy. Customer contact, delivery, and order records are encrypted and strictly used for order fulfillment and requested concierge communications.',
       },
       termsOfService: {
         type: String,
         default:
-          'All watches sold by BinFareedStore are covered by our official 2-year mechanical and movement warranty. Prices are listed in Pakistani Rupees (PKR) and validated on the server at checkout.',
+          'All watches sold by BinFareedStore are guaranteed authentic. Prices are listed in Pakistani Rupees (PKR) and validated on the server at checkout.',
       },
     },
   },

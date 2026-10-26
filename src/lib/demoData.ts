@@ -124,7 +124,7 @@ export const demoSettings = {
   enableCod: true,
   enableOnlinePayment: false,
   enableBankTransfer: true,
-  contactEmail: 'concierge@example.com',
+  contactEmail: 'bffareedstore@gmail.com',
   contactPhone: '+92 301 7713866',
   // Store contact & WhatsApp number
   whatsappNumber: '+92 301 7713866',
@@ -138,7 +138,7 @@ export const demoHomepage: HomepageContent = {
     messages: [
       { text: 'Demo mode — sample products shown while the backend is offline', isActive: true },
       { text: 'Complimentary insured delivery on orders over Rs. 25,000', link: '/shipping-returns', isActive: true },
-      { text: '100% authentic timepieces with official warranty', isActive: true },
+      { text: '100% authentic timepieces with guaranteed craftsmanship', isActive: true },
       { text: 'New Arrivals — Heritage 1884 Field now in stock', link: '/shop?newArrival=true', isActive: true },
       { text: 'Use code DEMO10 for 10% off', isActive: true },
     ],

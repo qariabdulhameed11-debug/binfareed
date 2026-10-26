@@ -256,7 +256,7 @@ const productPayloadSchema = z.object({
       dialColor: z.string().default('Obsidian Black'),
       crystal: z.string().default('Sapphire Crystal'),
       waterResistance: z.string().default('10 ATM (100m)'),
-      warranty: z.string().default('2-Year Official Warranty'),
+      warranty: z.string().default('Authenticity Guaranteed'),
       origin: z.string().default('Swiss Made'),
     })
     .optional(),

@@ -1089,7 +1089,7 @@ var WatchSpecificationsSchema = new Schema5(
     dialColor: { type: String, default: "Obsidian Black", index: true },
     crystal: { type: String, default: "Sapphire Crystal" },
     waterResistance: { type: String, default: "10 ATM (100m)" },
-    warranty: { type: String, default: "2-Year Official Warranty" },
+    warranty: { type: String, default: "Authenticity Guaranteed" },
     origin: { type: String, default: "Swiss Made" }
   },
   { _id: false }
@@ -1543,7 +1543,7 @@ var HomepageContentSchema = new Schema9(
       subtitle: { type: String, default: "Crafted in Surgical-Grade Steel & Sapphire Crystal" },
       description: {
         type: String,
-        default: "Experience precision automatic engineering with complimentary insured express delivery and a 2-year official BinFareedStore warranty."
+        default: "Experience precision automatic engineering with complimentary insured express delivery and 100% genuine craftsmanship guarantee."
       },
       image: {
         type: String,
@@ -1584,9 +1584,9 @@ var HomepageContentSchema = new Schema9(
             description: "Every timepiece is inspected by master watch technicians prior to dispatch."
           },
           {
-            label: "Official Warranty",
-            value: "2-Year Coverage",
-            description: "Comprehensive movement and craftsmanship protection with dedicated service support."
+            label: "Inspection Guarantee",
+            value: "7-Day Policy",
+            description: "Hassle-free inspection and exchange guarantee on all unworn timepieces."
           },
           {
             label: "Insured Delivery",
@@ -1661,7 +1661,7 @@ var StoreSettingsSchema = new Schema10(
       type: String,
       default: "Meezan Bank Limited \u2014 Account Title: BinFareed Horology Pvt Ltd \u2014 IBAN: PK36MEZN0001234567890102"
     },
-    contactEmail: { type: String, default: "concierge@binfareedstore.pk" },
+    contactEmail: { type: String, default: "bffareedstore@gmail.com" },
     contactPhone: { type: String, default: "+92 301 7713866" },
     whatsappNumber: { type: String, default: "+92 301 7713866" },
     whatsappOrderingEnabled: { type: Boolean, default: true },
@@ -1721,15 +1721,15 @@ var StoreSettingsSchema = new Schema10(
       },
       returnPolicy: {
         type: String,
-        default: "We offer a 7-day inspection and exchange guarantee from the date of delivery. Timepieces must remain unworn, with all protective factory films intact, original presentation box, warranty card, and tags included."
+        default: "We offer a 7-day inspection and exchange guarantee from the date of delivery. Timepieces must remain unworn, with all protective factory films intact, original presentation box, and tags included."
       },
       privacyPolicy: {
         type: String,
-        default: "BinFareedStore respects your privacy. Customer contact, delivery, and order records are encrypted and strictly used for order fulfillment, warranty registration, and requested concierge communications."
+        default: "BinFareedStore respects your privacy. Customer contact, delivery, and order records are encrypted and strictly used for order fulfillment and requested concierge communications."
       },
       termsOfService: {
         type: String,
-        default: "All watches sold by BinFareedStore are covered by our official 2-year mechanical and movement warranty. Prices are listed in Pakistani Rupees (PKR) and validated on the server at checkout."
+        default: "All watches sold by BinFareedStore are guaranteed authentic. Prices are listed in Pakistani Rupees (PKR) and validated on the server at checkout."
       }
     }
   },
@@ -2860,7 +2860,7 @@ var productPayloadSchema = z5.object({
     dialColor: z5.string().default("Obsidian Black"),
     crystal: z5.string().default("Sapphire Crystal"),
     waterResistance: z5.string().default("10 ATM (100m)"),
-    warranty: z5.string().default("2-Year Official Warranty"),
+    warranty: z5.string().default("Authenticity Guaranteed"),
     origin: z5.string().default("Swiss Made")
   }).optional(),
   variants: z5.array(

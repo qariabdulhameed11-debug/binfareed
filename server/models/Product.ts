@@ -102,7 +102,7 @@ const WatchSpecificationsSchema = new Schema<IWatchSpecifications>(
     dialColor: { type: String, default: 'Obsidian Black', index: true },
     crystal: { type: String, default: 'Sapphire Crystal' },
     waterResistance: { type: String, default: '10 ATM (100m)' },
-    warranty: { type: String, default: '2-Year Official Warranty' },
+    warranty: { type: String, default: 'Authenticity Guaranteed' },
     origin: { type: String, default: 'Swiss Made' },
   },
   { _id: false }

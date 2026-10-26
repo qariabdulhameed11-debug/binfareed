@@ -24,7 +24,7 @@ const MARQUEE = [
   'Certified Authentic',
   'Hand-Finished Côtes de Genève',
   'Insured Delivery',
-  'Official Warranty',
+  'Collector Presentation Box',
 ];
 
 export const MaisonShowcase: React.FC = () => {

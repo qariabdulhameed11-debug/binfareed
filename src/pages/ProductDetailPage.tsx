@@ -569,9 +569,9 @@ export const ProductDetailPage: React.FC = () => {
               <div className="p-3.5 rounded-lg bg-[#F3EFE6] flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-[#9E7B36] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-[#0D0D0D]">2-Year Official Warranty</span>
+                  <span className="font-bold block text-[#0D0D0D]">100% Genuine Horology</span>
                   <span className="text-neutral-600 text-[11px]">
-                    Stamped BinFareedStore warranty card included.
+                    BinFareedStore authenticity guarantee included.
                   </span>
                 </div>
               </div>
@@ -619,7 +619,7 @@ export const ProductDetailPage: React.FC = () => {
                   { label: 'Lug / Strap Width', value: product.specifications?.strapWidth },
                   { label: 'Water Resistance', value: product.specifications?.waterResistance },
                   { label: 'Gender Fit', value: product.gender },
-                  { label: 'Warranty Coverage', value: product.specifications?.warranty },
+                  { label: 'Authenticity Guarantee', value: '100% Verified Genuine' },
                 ].map((spec, idx) => (
                   <div
                     key={idx}
