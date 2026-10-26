@@ -26,7 +26,10 @@ var env = {
   PAYMENT_API_KEY: process.env.PAYMENT_API_KEY || "",
   PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET || "bfs_dev_webhook_secret_2026",
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@binfareedstore.pk",
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "3w?d*@vaYJG52$bHr4"
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "3w?d*@vaYJG52$bHr4",
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || "BLuQM81lJ1D7koXb354lkWZC3JcAn5MulAAaw0WbkP_xCUy9d3Ia-bXoW374LoMskV78sCJW1Md3NXA6nxhOKCk",
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || "ZqUFVP_7RUZc-SJ99PbWLX9_3pyibDPS3M3Sk_Xv7IU",
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT || "mailto:bffareedstore@gmail.com"
 };
 var DEFAULT_INSECURE_SECRET = "bfs_dev_jwt_secret_key_99887766554433221100_luxury_horology";
 if (env.JWT_SECRET === DEFAULT_INSECURE_SECRET) {
@@ -1966,9 +1969,9 @@ var PushSubscriptionSchema = new Schema12(
 var PushSubscription = mongoose14.model("PushSubscription", PushSubscriptionSchema);
 
 // server/utils/push.ts
-var PUBLIC = process.env.VAPID_PUBLIC_KEY || "";
-var PRIVATE = process.env.VAPID_PRIVATE_KEY || "";
-var SUBJECT = process.env.VAPID_SUBJECT || "mailto:admin@example.com";
+var PUBLIC = env.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || "";
+var PRIVATE = env.VAPID_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY || "";
+var SUBJECT = env.VAPID_SUBJECT || process.env.VAPID_SUBJECT || "mailto:bffareedstore@gmail.com";
 var pushEnabled = Boolean(PUBLIC && PRIVATE);
 var vapidPublicKey = PUBLIC;
 if (pushEnabled) {

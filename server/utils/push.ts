@@ -1,10 +1,10 @@
-import '../config/env'; // ensure .env is loaded before reading VAPID keys
+import { env } from '../config/env';
 import webpush from 'web-push';
 import { PushSubscription, PushTopic } from '../models/PushSubscription';
 
-const PUBLIC = process.env.VAPID_PUBLIC_KEY || '';
-const PRIVATE = process.env.VAPID_PRIVATE_KEY || '';
-const SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@example.com';
+const PUBLIC = env.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '';
+const PRIVATE = env.VAPID_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY || '';
+const SUBJECT = env.VAPID_SUBJECT || process.env.VAPID_SUBJECT || 'mailto:bffareedstore@gmail.com';
 
 export const pushEnabled = Boolean(PUBLIC && PRIVATE);
 export const vapidPublicKey = PUBLIC;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { InstallAppButton } from '../components/AppActions';
+import { InstallAppButton, PushToggleButton } from '../components/AppActions';
 import {
   LayoutDashboard,
   Watch,
@@ -945,6 +945,36 @@ export const AdminDashboardPage: React.FC = () => {
                       <p className="text-[11px] text-neutral-500">{m.monthOrders || 0} order{m.monthOrders === 1 ? '' : 's'}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Mobile Push Notification Setup Card */}
+              <div className="rounded-2xl bg-gradient-to-r from-[#17171A] via-[#1F1F24] to-[#121214] text-[#FAF8F5] p-5 sm:p-6 border border-[#C5A059]/35 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.5)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center shrink-0 text-[#C5A059] shadow-inner">
+                    <Megaphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-serif-luxury text-lg font-semibold text-[#FAF8F5]">
+                        Mobile Order Notifications
+                      </h3>
+                      <span className="text-[10px] tracking-widest uppercase font-mono px-2 py-0.5 rounded-full bg-[#C5A059]/20 text-[#DFBD78] border border-[#C5A059]/30 font-bold">
+                        Phone Alerts
+                      </span>
+                    </div>
+                    <p className="text-xs text-neutral-300 mt-1 max-w-xl leading-relaxed">
+                      Jab bhi koi naya order aayega, aap ke phone par sound aur vibration ke sath instant pop-up notification aayega. Is phone par activate karne ke liye button dabayein:
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center gap-3">
+                  <PushToggleButton
+                    topic="admin-orders"
+                    onLabel="Enable Phone Alerts"
+                    offLabel="Alerts Active on this Phone"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C5A059] hover:bg-[#D4AF37] text-[#0D0D0D] font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                  />
                 </div>
               </div>
 
