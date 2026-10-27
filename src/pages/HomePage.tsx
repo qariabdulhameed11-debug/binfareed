@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
           <SectionHeading
             eyebrow="Curated Horology"
             title="The Collections"
-            subtitle="Hover or tap a card to turn it over and discover the story behind each family of timepieces."
+
             link={{ to: '/collections', label: 'All Collections' }}
           />
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
