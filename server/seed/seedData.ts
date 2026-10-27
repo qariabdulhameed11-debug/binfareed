@@ -234,7 +234,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
   // 4. Products (12 Realistic Luxury & Everyday Timepieces)
   const productsSeed = [
     {
-      name: 'Carrera Calibre 5 Day-Date Classic',
+      name: 'Carrera Calibre 5',
       slug: 'carrera-calibre-5-day-date-classic',
       brand: 'BinFareed Atelier',
       model: 'BFA-CAL-501',
@@ -251,7 +251,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       images: [
         {
           url: '/products/calibre-silver-brown.jpg',
-          alt: 'Carrera Calibre 5 Day-Date Classic Front View',
+          alt: 'Carrera Calibre 5 Front View',
           isMain: true,
         },
       ],
@@ -281,7 +281,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 7,
     },
     {
-      name: 'Timely Elegance Noir Square',
+      name: 'Timely Elegance Noir',
       slug: 'timely-elegance-noir-square',
       brand: 'BinFareed Atelier',
       model: 'BFA-TMY-202',
@@ -293,12 +293,12 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       salePrice: 19900,
       costPrice: 11000,
       shortDescription: 'Contemporary urban cushion-square timepiece featuring micro-grid textured dial, warm rose gold indices, and a high-grade matte black silicone strap.',
-      description: 'Designed for the modern architectural purist, the Timely Elegance Noir Square marries industrial minimalism with refined luxury. Its brushed gunmetal cushion case frames a micro-waffle textured obsidian dial accented by warm rose gold geometric indices and dauphine hands. Fitted with an ultra-comfortable ergonomic black fluorocarbon silicone strap, offering seamless versatility from boardroom to evening lounge.',
+      description: 'Designed for the modern architectural purist, the Timely Elegance Noir marries industrial minimalism with refined luxury. Its brushed gunmetal cushion case frames a micro-waffle textured obsidian dial accented by warm rose gold geometric indices and dauphine hands. Fitted with an ultra-comfortable ergonomic black fluorocarbon silicone strap, offering seamless versatility from boardroom to evening lounge.',
       mainImage: '/products/timely-square-noir.jpg',
       images: [
         {
           url: '/products/timely-square-noir.jpg',
-          alt: 'Timely Elegance Noir Square Front View',
+          alt: 'Timely Elegance Noir Front View',
           isMain: true,
         },
       ],
@@ -328,7 +328,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 5,
     },
     {
-      name: 'Santos Grand Roman Cushion Bezel',
+      name: 'Santos Grand Roman',
       slug: 'santos-grand-roman-cushion-bezel',
       brand: 'BinFareed Atelier',
       model: 'BFA-SAN-303',
@@ -340,12 +340,12 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       salePrice: 32900,
       costPrice: 18000,
       shortDescription: 'Iconic curved square case with polished screw-accented bezel, guilloché onyx black dial, bold white Roman numerals, and textured sports rubber strap.',
-      description: 'An undeniable nod to aviation horology heritage, the Santos Grand Roman Cushion Bezel stands as a statement of bold luxury. The sculptured stainless steel case features signature polished bezel screws and curved ergonomic lugs that hug the wrist. Beneath the bevelled crystal lies a radiant sunray guilloché black dial adorned with crisp white Roman numerals and luminescent sword hands. Paired with a ribbed sports silicone strap that delivers both casual flair and timeless prestige.',
+      description: 'An undeniable nod to aviation horology heritage, the Santos Grand Roman stands as a statement of bold luxury. The sculptured stainless steel case features signature polished bezel screws and curved ergonomic lugs that hug the wrist. Beneath the bevelled crystal lies a radiant sunray guilloché black dial adorned with crisp white Roman numerals and luminescent sword hands. Paired with a ribbed sports silicone strap that delivers both casual flair and timeless prestige.',
       mainImage: '/products/santos-roman-onyx.jpg',
       images: [
         {
           url: '/products/santos-roman-onyx.jpg',
-          alt: 'Santos Grand Roman Cushion Bezel Front View',
+          alt: 'Santos Grand Roman Front View',
           isMain: true,
         },
       ],
@@ -375,7 +375,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 11,
     },
     {
-      name: 'Maidu Avant-Garde Industrial Chronograph',
+      name: 'Maidu Industrial Chrono',
       slug: 'maidu-avant-garde-industrial-chronograph',
       brand: 'BinFareed Atelier',
       model: 'BFA-MDU-404',
@@ -387,12 +387,12 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       salePrice: 28500,
       costPrice: 16000,
       shortDescription: 'Bold 42mm gunmetal tonneau case with tri-register chronograph sub-dials, prominent 12-hour marker, responsive pump pushers, and stitched black leather strap.',
-      description: 'Engineered with high-octane motorsport DNA, the Maidu Avant-Garde Industrial Chronograph boasts a sculpted gunmetal PVD cushion case with knurled dual pushers. The matte anthracite dial features a three-dimensional layout with sub-dials for 24-hour time, 60-second counter, and elapsed chronograph timing, highlighted by a bold Arabic 12 and signature red emblem. Finished with a robust genuine black cowhide leather strap with tonal stitching.',
+      description: 'Engineered with high-octane motorsport DNA, the Maidu Industrial Chrono boasts a sculpted gunmetal PVD cushion case with knurled dual pushers. The matte anthracite dial features a three-dimensional layout with sub-dials for 24-hour time, 60-second counter, and elapsed chronograph timing, highlighted by a bold Arabic 12 and signature red emblem. Finished with a robust genuine black cowhide leather strap with tonal stitching.',
       mainImage: '/products/maidu-chronograph-grey.jpg',
       images: [
         {
           url: '/products/maidu-chronograph-grey.jpg',
-          alt: 'Maidu Avant-Garde Industrial Chronograph Front View',
+          alt: 'Maidu Industrial Chrono Front View',
           isMain: true,
         },
       ],
@@ -422,7 +422,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 4,
     },
     {
-      name: 'Tonneau Skeleton Bull Racing Edition',
+      name: 'Tonneau Skeleton Bull',
       slug: 'tonneau-skeleton-bull-racing-edition',
       brand: 'BinFareed Atelier',
       model: 'BFA-SKL-701',
@@ -434,12 +434,12 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       salePrice: 48000,
       costPrice: 28000,
       shortDescription: 'Avant-garde curved tonneau case in matte black with skeletonised balance movement, honeycomb inner grill, iconic yellow bull emblem, and integrated silicone strap.',
-      description: 'Exuding aggressive motorsport energy and haute horlogerie craftsmanship, the Tonneau Skeleton Bull Racing Edition features a sculptured curved tonneau case fastened with industrial star-head bezel bolts. The multi-layered openworked skeleton dial showcases the mechanical heartbeat beneath a honeycomb lattice, anchored by a vivid yellow raging-bull shield emblem at 6 o\'clock. Fitted with an ergonomic high-durability black rubber strap contoured seamlessly to the wrist.',
+      description: 'Exuding aggressive motorsport energy and haute horlogerie craftsmanship, the Tonneau Skeleton Bull features a sculptured curved tonneau case fastened with industrial star-head bezel bolts. The multi-layered openworked skeleton dial showcases the mechanical heartbeat beneath a honeycomb lattice, anchored by a vivid yellow raging-bull shield emblem at 6 o\'clock. Fitted with an ergonomic high-durability black rubber strap contoured seamlessly to the wrist.',
       mainImage: '/products/tonneau-skeleton-bull-black.jpg',
       images: [
         {
           url: '/products/tonneau-skeleton-bull-black.jpg',
-          alt: 'Tonneau Skeleton Bull Racing Edition Front View',
+          alt: 'Tonneau Skeleton Bull Front View',
           isMain: true,
         },
       ],
@@ -469,7 +469,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 8,
     },
     {
-      name: 'Classic Fusion Chronograph Emerald Green Steel',
+      name: 'Classic Fusion Chrono',
       slug: 'classic-fusion-chronograph-emerald-green',
       brand: 'BinFareed Atelier',
       model: 'BFA-FUS-802',
@@ -486,7 +486,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       images: [
         {
           url: '/products/fusion-chronograph-green-steel.jpg',
-          alt: 'Classic Fusion Chronograph Emerald Green Steel Front View',
+          alt: 'Classic Fusion Chrono Front View',
           isMain: true,
         },
       ],
@@ -516,7 +516,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 6,
     },
     {
-      name: 'Florence Diamond Index Day-Date Silver',
+      name: 'Florence Day-Date Silver',
       slug: 'florence-diamond-day-date-silver',
       brand: 'BinFareed Atelier',
       model: 'BFA-FLR-603',
@@ -533,7 +533,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       images: [
         {
           url: '/products/florence-diamond-daydate-silver.jpg',
-          alt: 'Florence Diamond Index Day-Date Silver Front View',
+          alt: 'Florence Day-Date Silver Front View',
           isMain: true,
         },
       ],
@@ -563,7 +563,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 4,
     },
     {
-      name: 'PRX Two-Tone Emerald Gold Integrated Steel',
+      name: 'PRX Two-Tone Emerald',
       slug: 'prx-two-tone-emerald-gold-steel',
       brand: 'BinFareed Atelier',
       model: 'BFA-PRX-904',
@@ -580,7 +580,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       images: [
         {
           url: '/products/prx-twotone-emerald-gold.jpg',
-          alt: 'PRX Two-Tone Emerald Gold Integrated Steel Front View',
+          alt: 'PRX Two-Tone Emerald Front View',
           isMain: true,
         },
       ],
@@ -610,7 +610,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       reviewCount: 9,
     },
     {
-      name: 'Carrera Calibre 5 Arabic Day-Date Terracotta Edition',
+      name: 'Carrera Arabic Calibre 5',
       slug: 'carrera-calibre-5-arabic-day-date-terracotta',
       brand: 'BinFareed Atelier',
       model: 'BFA-CAR-505',
@@ -627,7 +627,7 @@ export async function seedDatabase(forceReset = false): Promise<void> {
       images: [
         {
           url: '/products/carrera-arabic-daydate-terracotta.jpg',
-          alt: 'Carrera Calibre 5 Arabic Day-Date Terracotta Edition Front View',
+          alt: 'Carrera Arabic Calibre 5 Front View',
           isMain: true,
         },
       ],

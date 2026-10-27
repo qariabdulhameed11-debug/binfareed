@@ -12,6 +12,15 @@ interface ProductCardProps {
   product: Product;
 }
 
+function formatMovement(movement?: string): string {
+  if (!movement) return 'Automatic';
+  if (/chrono/i.test(movement)) return 'Chrono';
+  if (/quartz/i.test(movement)) return 'Quartz';
+  if (/automatic/i.test(movement)) return 'Automatic';
+  if (/manual|mechanical/i.test(movement)) return 'Manual';
+  return movement.split(' ')[0] || 'Automatic';
+}
+
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const {
     addToCart,
@@ -171,15 +180,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
         <div>
           <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em] text-[#9E7B36] font-semibold">
-            <span className="truncate">{product.brand}</span>
-            <span className="text-neutral-500 font-mono-code text-[10px]">
-              {product.specifications?.movement || 'Automatic'}
+            <span className="truncate max-w-[65%]">
+              {product.brand ? product.brand.replace(/\s*atelier/i, '').trim() : 'BinFareed'}
+            </span>
+            <span className="text-neutral-500 font-mono-code text-[10px] shrink-0 uppercase tracking-wider">
+              {formatMovement(product.specifications?.movement)}
             </span>
           </div>
 
           <Link
             to={`/product/${product.slug}`}
-            className="mt-1 block font-serif-luxury text-[15px] sm:text-lg font-semibold text-[#0D0D0D] group-hover:text-[#9E7B36] transition-colors line-clamp-2 leading-snug"
+            className="mt-1 block font-serif-luxury text-[15px] sm:text-lg font-semibold text-[#0D0D0D] group-hover:text-[#9E7B36] transition-colors line-clamp-1 sm:line-clamp-2 leading-snug"
+            title={product.name}
           >
             {product.name}
           </Link>
