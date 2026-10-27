@@ -57,11 +57,11 @@ export const AdminLoginPage: React.FC = () => {
       >
         <div className="text-center space-y-2">
           <img
-            src="/brand/logo-full.webp"
+            src="/brand/logo-full.png"
             alt="BinFareed Store"
-            width={150}
-            height={120}
-            className="h-28 w-auto mx-auto mb-2"
+            width={112}
+            height={112}
+            className="h-28 w-28 rounded-full mx-auto mb-3 object-contain drop-shadow-[0_4px_16px_rgba(197,160,89,0.3)]"
           />
           <h1 className="font-serif-luxury text-3xl text-[#FAF8F5] font-semibold">Staff Console</h1>
           <p className="text-xs text-[#FAF8F5]/50">Authorized personnel only. Access is logged.</p>

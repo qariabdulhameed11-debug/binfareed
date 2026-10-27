@@ -72,21 +72,22 @@ export const Navbar: React.FC = () => {
             </button>
 
             {/* Brand Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group shrink-0" aria-label="BinFareed Store — home">
+            <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="BinFareed Store — home">
               <img
-                src="/brand/logo-mark.webp"
-                alt=""
-                width={44}
-                height={46}
-                className="h-10 sm:h-11 w-auto transition-transform duration-500 group-hover:scale-105 drop-shadow-[0_2px_8px_rgba(197,160,89,0.25)]"
-              />
-              <img
-                src="/brand/logo-wordmark.webp"
+                src="/brand/logo-mark.png"
                 alt="BinFareed Store"
-                width={140}
-                height={40}
-                className="h-8 sm:h-9 w-auto"
+                width={48}
+                height={48}
+                className="h-11 sm:h-12 w-auto rounded-full object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-[0_2px_10px_rgba(197,160,89,0.3)]"
               />
+              <div className="flex flex-col">
+                <span className="font-serif-luxury text-xl sm:text-2xl font-bold tracking-wider text-[#FAF8F5] leading-none group-hover:text-[#C5A059] transition-colors">
+                  BinFareed
+                </span>
+                <span className="text-[9px] uppercase tracking-[0.32em] text-[#C5A059] font-sans font-semibold mt-0.5">
+                  Store
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -185,7 +186,17 @@ export const Navbar: React.FC = () => {
               className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#0D0D0D] text-[#FAF8F5] z-50 flex flex-col border-r border-[#C5A059]/30 lg:hidden"
             >
               <div className="p-5 border-b border-white/10 flex items-center justify-between">
-                <img src="/brand/logo-wordmark.webp" alt="BinFareed Store" width={126} height={36} className="h-9 w-auto" />
+                <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5">
+                  <img src="/brand/logo-mark.png" alt="BinFareed Store" width={38} height={38} className="h-9 w-auto rounded-full object-contain" />
+                  <div className="flex flex-col">
+                    <span className="font-serif-luxury text-xl font-bold tracking-wider text-[#FAF8F5] leading-none">
+                      BinFareed
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.32em] text-[#C5A059] font-sans font-semibold mt-0.5">
+                      Store
+                    </span>
+                  </div>
+                </Link>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}

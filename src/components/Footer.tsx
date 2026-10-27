@@ -95,12 +95,12 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="inline-block" aria-label="BinFareed Store — home">
               <img
-                src="/brand/logo-full.webp"
+                src="/brand/logo-full.png"
                 alt="BinFareed Store"
-                width={180}
-                height={143}
+                width={128}
+                height={128}
                 loading="lazy"
-                className="h-28 w-auto"
+                className="h-28 w-28 rounded-2xl object-contain drop-shadow-[0_4px_20px_rgba(197,160,89,0.25)]"
               />
             </Link>
 

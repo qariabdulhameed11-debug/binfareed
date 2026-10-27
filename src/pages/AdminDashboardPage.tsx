@@ -717,7 +717,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="h-[80px] px-5 flex items-center justify-between border-b border-white/[0.08] bg-white/[0.02]">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1C1810] to-[#0A0A0B] p-2 flex items-center justify-center border border-[#C5A059]/35 shadow-[0_0_15px_rgba(197,160,89,0.15)] shrink-0">
-              <img src="/brand/logo-mark.webp" alt="BinFareed" width={32} height={34} className="h-7 w-auto object-contain" />
+              <img src="/brand/logo-mark.png" alt="BinFareed" width={32} height={32} className="h-7 w-auto object-contain rounded-full" />
             </div>
             <div className="min-w-0 leading-tight">
               <p className="font-serif-luxury text-base font-bold tracking-[0.12em] text-[#FAF8F5] truncate">
