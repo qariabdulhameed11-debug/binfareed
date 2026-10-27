@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { sized, srcSet } from '../lib/img';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, ShoppingBag, Star, Check } from 'lucide-react';
+import { Heart, ShoppingBag, Check } from 'lucide-react';
 import { Product } from '../types';
 import { formatPrice } from '../lib/api';
 import { useStore } from '../context/StoreContext';
@@ -113,7 +113,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         
 
         {/* Top Right Quick Actions */}
-        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1.5 z-10">
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
           <button
             type="button"
             onClick={() => toggleWishlist(product)}
@@ -127,14 +127,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <Heart key={String(wished)} className={`w-4 h-4 ${wished ? 'fill-current heart-beat' : ''}`} />
           </button>
 
-          <button
-            type="button"
-            onClick={() => setQuickViewProduct(product)}
-            aria-label={`Quick view ${product.name}`}
-            className="w-8 h-8 rounded-full bg-white/90 text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#C5A059] flex items-center justify-center transition-all shadow-sm"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
+          
         </div>
 
         {/* Quick Add Overlay Bar */}
@@ -177,76 +170,53 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       {/* Product Info */}
-      <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em] text-[#9E7B36] font-semibold">
+          <div className="flex items-center justify-between gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#9E7B36] font-semibold">
             <span className="truncate max-w-[65%]">
               {product.brand ? product.brand.replace(/\s*atelier/i, '').trim() : 'BinFareed'}
             </span>
-            <span className="text-neutral-500 font-mono-code text-[10px] shrink-0 uppercase tracking-wider">
+            <span className="text-neutral-400 font-mono-code text-[10px] shrink-0 uppercase tracking-wider">
               {formatMovement(product.specifications?.movement)}
             </span>
           </div>
 
           <Link
             to={`/product/${product.slug}`}
-            className="mt-1 block font-serif-luxury text-[15px] sm:text-lg font-semibold text-[#0D0D0D] group-hover:text-[#9E7B36] transition-colors line-clamp-1 sm:line-clamp-2 leading-snug"
+            className="mt-1.5 block font-serif-luxury text-[15px] sm:text-[17px] font-semibold text-[#0D0D0D] group-hover:text-[#9E7B36] transition-colors line-clamp-1 leading-snug"
             title={product.name}
           >
             {product.name}
           </Link>
-
-          <p className="mt-1 text-xs text-neutral-500 line-clamp-1">
-            {product.specifications?.caseDiameter || '41 mm'} •{' '}
-            {product.specifications?.strapMaterial || 'Steel'}
-          </p>
         </div>
 
-        <div className="pt-2 border-t border-neutral-100 flex items-end justify-between gap-2">
+        <div className="pt-2.5 mt-2 border-t border-neutral-100 flex items-center justify-between">
           <div>
             {hasSale ? (
-              <div className="flex flex-col">
+              <div className="flex items-baseline gap-2">
                 <span className="text-xs text-neutral-400 line-through font-mono-code">
                   {formatPrice(product.price, symbol)}
                 </span>
-                <span className="text-[13px] sm:text-sm font-bold text-[#0D0D0D] font-mono-code">
+                <span className="text-sm sm:text-base font-bold text-[#0D0D0D] font-mono-code">
                   {formatPrice(product.salePrice, symbol)}
                 </span>
               </div>
             ) : (
-              <span className="text-[13px] sm:text-sm font-bold text-[#0D0D0D] font-mono-code">
+              <span className="text-sm sm:text-base font-bold text-[#0D0D0D] font-mono-code">
                 {formatPrice(product.price, symbol)}
               </span>
             )}
           </div>
 
-          <div className="flex flex-col items-end">
-            {product.reviewCount > 0 && (
-              <div className="flex items-center gap-1 text-xs text-amber-600">
-                <Star className="w-3.5 h-3.5 fill-current text-[#C5A059]" />
-                <span className="font-semibold text-[#0D0D0D]">
-                  {product.averageRating.toFixed(1)}
-                </span>
-                <span className="text-neutral-400">({product.reviewCount})</span>
-              </div>
-            )}
-
-            <span
-              className={`text-[10px] font-medium uppercase tracking-wider mt-0.5 ${
-                isOutOfStock
-                  ? 'text-red-600'
-                  : isLowStock
-                  ? 'text-amber-700'
-                  : 'text-emerald-700'
-              }`}
-            >
-              {isOutOfStock
-                ? 'Out of Stock'
-                : isLowStock
-                ? `Only ${product.stock} left`
-                : 'In Stock'}
+          {isOutOfStock ? (
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600">
+              Sold Out
             </span>
-          </div>
+          ) : isLowStock ? (
+            <span className="text-[10px] font-medium text-amber-700">
+              Only {product.stock} left
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import {
   ArrowRight,
   Star,
   CheckCircle2,
-  Copy,
+
   Sparkles,
   ShieldCheck,
   Clock,
@@ -13,10 +13,10 @@ import {
 import { useStore } from '../context/StoreContext';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { ProductCard } from '../components/ProductCard';
-import { MaisonShowcase } from '../components/MaisonShowcase';
+
 import { SectionHeading } from '../components/SectionHeading';
 import { FlipCollectionCard } from '../components/FlipCollectionCard';
-import { Showcase3D } from '../components/Showcase3D';
+
 import { Reveal } from '../components/Reveal';
 import { Product } from '../types';
 
@@ -47,10 +47,11 @@ export const HomePage: React.FC = () => {
     newsletter: true,
   };
 
-  const handleCopyCoupon = (code: string) => {
-    navigator.clipboard.writeText(code);
-    addToast(`Privilege code "${code}" copied to clipboard!`, 'success');
-  };
+
+
+
+
+
 
   return (
     <div className="home-sections space-y-20 sm:space-y-28 pb-20">
@@ -117,29 +118,6 @@ export const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* Signature: live-dial maison showcase */}
-      <MaisonShowcase />
-
-      {/* The Rotunda — 3D rotating showcase */}
-      {[...bestSellers, ...newArrivals].length >= 3 && (
-        <section className="relative bg-[#08090B] py-16 sm:py-20 overflow-hidden grain">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(197,160,89,0.12),transparent_60%)]" />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionHeading
-              tone="dark"
-              eyebrow="The Rotunda"
-              title="A Turn Through the Vault"
-              subtitle="Our most coveted pieces, presented in the round. Tap any watch to view it."
-            />
-            <Showcase3D
-              products={[...bestSellers, ...newArrivals].filter(
-                (p, i, all) => all.findIndex((x) => x._id === p._id) === i
-              )}
-            />
-          </div>
-        </section>
-      )}
-
       {/* F. Promotional Banner */}
       {visibility.promoBanner && homepage?.promoBanner?.isActive && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,16 +149,7 @@ export const HomePage: React.FC = () => {
                     {homepage.promoBanner.ctaText || 'Explore Limited Edition'}
                   </Link>
 
-                  {homepage.promoBanner.couponHighlight && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopyCoupon(homepage.promoBanner.couponHighlight!)}
-                      className="px-5 py-3.5 rounded border border-dashed border-[#C5A059]/60 bg-[#1A1A1E] hover:border-[#C5A059] text-xs font-mono-code text-[#FAF8F5] flex items-center gap-2.5 transition-colors"
-                    >
-                      <span>USE CODE: {homepage.promoBanner.couponHighlight}</span>
-                      <Copy className="w-3.5 h-3.5 text-[#C5A059]" />
-                    </button>
-                  )}
+                  
                 </div>
               </div>
 
