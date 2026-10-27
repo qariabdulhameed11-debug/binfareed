@@ -4,7 +4,42 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import path3 from "path";
-import mongoose19 from "mongoose";
+import fs2 from "fs";
+import mongoose20 from "mongoose";
+
+// server/models/Media.ts
+import mongoose, { Schema } from "mongoose";
+var MediaSchema = new Schema(
+  {
+    filename: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      trim: true
+    },
+    originalName: {
+      type: String,
+      default: ""
+    },
+    mimetype: {
+      type: String,
+      default: "image/webp"
+    },
+    size: {
+      type: Number,
+      default: 0
+    },
+    data: {
+      type: Buffer,
+      required: true
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+var Media = mongoose.model("Media", MediaSchema);
 
 // server/config/env.ts
 import dotenv from "dotenv";
@@ -37,13 +72,13 @@ if (env.JWT_SECRET === DEFAULT_INSECURE_SECRET) {
 }
 
 // server/config/db.ts
-import mongoose from "mongoose";
+import mongoose2 from "mongoose";
 var memoryServer = null;
 var isUsingMemoryServer = false;
 async function connectDatabase() {
   try {
     let mongoUri = (env.MONGODB_URI || "").trim();
-    if (mongoose.connection.readyState >= 1) {
+    if (mongoose2.connection.readyState >= 1) {
       return { uri: mongoUri || "cached", isMemory: isUsingMemoryServer };
     }
     if (!mongoUri) {
@@ -56,8 +91,8 @@ async function connectDatabase() {
       mongoUri = memoryServer.getUri();
       isUsingMemoryServer = true;
     }
-    mongoose.set("strictQuery", true);
-    await mongoose.connect(mongoUri, {
+    mongoose2.set("strictQuery", true);
+    await mongoose2.connect(mongoUri, {
       serverSelectionTimeoutMS: 5e3
     });
     console.log(`[DB] Connected to MongoDB (${isUsingMemoryServer ? "Embedded Memory Server" : "MongoDB Atlas / External Cluster"})`);
@@ -213,9 +248,9 @@ import crypto2 from "crypto";
 import { z } from "zod";
 
 // server/models/User.ts
-import mongoose2, { Schema } from "mongoose";
+import mongoose3, { Schema as Schema2 } from "mongoose";
 import bcrypt from "bcryptjs";
-var SavedAddressSchema = new Schema(
+var SavedAddressSchema = new Schema2(
   {
     label: { type: String, required: true, trim: true, default: "Home" },
     fullName: { type: String, required: true, trim: true },
@@ -229,7 +264,7 @@ var SavedAddressSchema = new Schema(
   },
   { _id: true }
 );
-var UserSchema = new Schema(
+var UserSchema = new Schema2(
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
     email: {
@@ -258,7 +293,7 @@ var UserSchema = new Schema(
     resetPasswordToken: { type: String, select: false },
     resetPasswordExpires: { type: Date, select: false },
     addresses: { type: [SavedAddressSchema], default: [] },
-    wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    wishlist: [{ type: Schema2.Types.ObjectId, ref: "Product" }],
     lastLoginAt: { type: Date }
   },
   { timestamps: true }
@@ -270,13 +305,13 @@ UserSchema.index(
   { role: 1 },
   { unique: true, partialFilterExpression: { role: "admin" }, name: "single_admin" }
 );
-var User = mongoose2.model("User", UserSchema);
+var User = mongoose3.model("User", UserSchema);
 
 // server/models/Order.ts
-import mongoose3, { Schema as Schema2 } from "mongoose";
-var OrderItemSchema = new Schema2(
+import mongoose4, { Schema as Schema3 } from "mongoose";
+var OrderItemSchema = new Schema3(
   {
-    product: { type: Schema2.Types.ObjectId, ref: "Product", required: true },
+    product: { type: Schema3.Types.ObjectId, ref: "Product", required: true },
     name: { type: String, required: true },
     slug: { type: String, required: true },
     brand: { type: String, required: true },
@@ -290,7 +325,7 @@ var OrderItemSchema = new Schema2(
   },
   { _id: false }
 );
-var ShippingAddressSchema = new Schema2(
+var ShippingAddressSchema = new Schema3(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true, trim: true },
@@ -304,7 +339,7 @@ var ShippingAddressSchema = new Schema2(
   },
   { _id: false }
 );
-var OrderStatusHistorySchema = new Schema2(
+var OrderStatusHistorySchema = new Schema3(
   {
     status: { type: String, required: true },
     paymentStatus: { type: String },
@@ -314,7 +349,7 @@ var OrderStatusHistorySchema = new Schema2(
   },
   { _id: false }
 );
-var WhatsAppLogSchema = new Schema2(
+var WhatsAppLogSchema = new Schema3(
   {
     template: { type: String, required: true },
     message: { type: String, required: true, maxlength: 4e3 },
@@ -324,13 +359,13 @@ var WhatsAppLogSchema = new Schema2(
   },
   { _id: false }
 );
-var OrderSchema = new Schema2(
+var OrderSchema = new Schema3(
   {
     orderNumber: { type: String, required: true, unique: true, uppercase: true, index: true },
     requestNumber: { type: String, unique: true, sparse: true, uppercase: true },
     approvedAt: { type: Date },
     idempotencyKey: { type: String, unique: true, sparse: true, index: true },
-    user: { type: Schema2.Types.ObjectId, ref: "User", default: null, index: true },
+    user: { type: Schema3.Types.ObjectId, ref: "User", default: null, index: true },
     isGuest: { type: Boolean, default: false },
     items: { type: [OrderItemSchema], required: true },
     shippingAddress: { type: ShippingAddressSchema, required: true },
@@ -375,7 +410,7 @@ var OrderSchema = new Schema2(
   },
   { timestamps: true }
 );
-var Order = mongoose3.model("Order", OrderSchema);
+var Order = mongoose4.model("Order", OrderSchema);
 
 // server/middleware/auth.ts
 import jwt from "jsonwebtoken";
@@ -484,10 +519,10 @@ function requireAdmin(req, res, next) {
 import crypto from "crypto";
 
 // server/models/AuditLog.ts
-import mongoose4, { Schema as Schema3 } from "mongoose";
-var AuditLogSchema = new Schema3(
+import mongoose5, { Schema as Schema4 } from "mongoose";
+var AuditLogSchema = new Schema4(
   {
-    actorId: { type: Schema3.Types.ObjectId, ref: "User", index: true },
+    actorId: { type: Schema4.Types.ObjectId, ref: "User", index: true },
     actorName: { type: String, required: true },
     actorEmail: { type: String, required: true },
     action: { type: String, required: true, index: true },
@@ -503,11 +538,11 @@ var AuditLogSchema = new Schema3(
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
-var AuditLog = mongoose4.model("AuditLog", AuditLogSchema);
+var AuditLog = mongoose5.model("AuditLog", AuditLogSchema);
 
 // server/models/Coupon.ts
-import mongoose5, { Schema as Schema4 } from "mongoose";
-var CouponSchema = new Schema4(
+import mongoose6, { Schema as Schema5 } from "mongoose";
+var CouponSchema = new Schema5(
   {
     code: { type: String, required: true, unique: true, uppercase: true, trim: true, index: true },
     description: { type: String, default: "", trim: true },
@@ -522,18 +557,18 @@ var CouponSchema = new Schema4(
     perCustomerLimit: { type: Number, default: 1, min: 1 },
     usedByUsers: [
       {
-        userId: { type: Schema4.Types.ObjectId, ref: "User" },
+        userId: { type: Schema5.Types.ObjectId, ref: "User" },
         email: { type: String, lowercase: true },
         usedAt: { type: Date, default: Date.now }
       }
     ],
-    applicableCategories: [{ type: Schema4.Types.ObjectId, ref: "Category" }],
-    applicableProducts: [{ type: Schema4.Types.ObjectId, ref: "Product" }],
+    applicableCategories: [{ type: Schema5.Types.ObjectId, ref: "Category" }],
+    applicableProducts: [{ type: Schema5.Types.ObjectId, ref: "Product" }],
     isActive: { type: Boolean, default: true, index: true }
   },
   { timestamps: true }
 );
-var Coupon = mongoose5.model("Coupon", CouponSchema);
+var Coupon = mongoose6.model("Coupon", CouponSchema);
 
 // server/utils/helpers.ts
 function slugify(text) {
@@ -1055,12 +1090,12 @@ var authRoutes_default = router;
 
 // server/routes/productRoutes.ts
 import { Router as Router2 } from "express";
-import mongoose10 from "mongoose";
+import mongoose11 from "mongoose";
 import { z as z2 } from "zod";
 
 // server/models/Product.ts
-import mongoose6, { Schema as Schema5 } from "mongoose";
-var ProductImageSchema = new Schema5(
+import mongoose7, { Schema as Schema6 } from "mongoose";
+var ProductImageSchema = new Schema6(
   {
     url: { type: String, required: true },
     alt: { type: String, default: "" },
@@ -1068,7 +1103,7 @@ var ProductImageSchema = new Schema5(
   },
   { _id: false }
 );
-var ProductVariantSchema = new Schema5(
+var ProductVariantSchema = new Schema6(
   {
     sku: { type: String, required: true, trim: true },
     name: { type: String, required: true, trim: true },
@@ -1081,7 +1116,7 @@ var ProductVariantSchema = new Schema5(
   },
   { _id: true }
 );
-var WatchSpecificationsSchema = new Schema5(
+var WatchSpecificationsSchema = new Schema6(
   {
     movement: { type: String, default: "Automatic", index: true },
     caseMaterial: { type: String, default: "316L Stainless Steel" },
@@ -1097,15 +1132,15 @@ var WatchSpecificationsSchema = new Schema5(
   },
   { _id: false }
 );
-var ProductSchema = new Schema5(
+var ProductSchema = new Schema6(
   {
     name: { type: String, required: true, trim: true, maxlength: 180, index: true },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     brand: { type: String, required: true, trim: true, index: true },
     model: { type: String, required: true, trim: true },
     sku: { type: String, required: true, unique: true, uppercase: true, trim: true, index: true },
-    category: { type: Schema5.Types.ObjectId, ref: "Category", index: true },
-    collections: [{ type: Schema5.Types.ObjectId, ref: "Collection", index: true }],
+    category: { type: Schema6.Types.ObjectId, ref: "Category", index: true },
+    collections: [{ type: Schema6.Types.ObjectId, ref: "Collection", index: true }],
     gender: {
       type: String,
       enum: ["Men", "Women", "Unisex"],
@@ -1150,11 +1185,11 @@ ProductSchema.index({
   description: "text",
   tags: "text"
 });
-var Product = mongoose6.model("Product", ProductSchema);
+var Product = mongoose7.model("Product", ProductSchema);
 
 // server/models/Category.ts
-import mongoose7, { Schema as Schema6 } from "mongoose";
-var CategorySchema = new Schema6(
+import mongoose8, { Schema as Schema7 } from "mongoose";
+var CategorySchema = new Schema7(
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
@@ -1167,11 +1202,11 @@ var CategorySchema = new Schema6(
   },
   { timestamps: true }
 );
-var Category = mongoose7.model("Category", CategorySchema);
+var Category = mongoose8.model("Category", CategorySchema);
 
 // server/models/Collection.ts
-import mongoose8, { Schema as Schema7 } from "mongoose";
-var CollectionSchema = new Schema7(
+import mongoose9, { Schema as Schema8 } from "mongoose";
+var CollectionSchema = new Schema8(
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
@@ -1187,16 +1222,16 @@ var CollectionSchema = new Schema7(
   },
   { timestamps: true }
 );
-var Collection = mongoose8.model("Collection", CollectionSchema);
+var Collection = mongoose9.model("Collection", CollectionSchema);
 
 // server/models/Review.ts
-import mongoose9, { Schema as Schema8 } from "mongoose";
-var ReviewSchema = new Schema8(
+import mongoose10, { Schema as Schema9 } from "mongoose";
+var ReviewSchema = new Schema9(
   {
-    product: { type: Schema8.Types.ObjectId, ref: "Product", required: true, index: true },
-    user: { type: Schema8.Types.ObjectId, ref: "User", required: true, index: true },
+    product: { type: Schema9.Types.ObjectId, ref: "Product", required: true, index: true },
+    user: { type: Schema9.Types.ObjectId, ref: "User", required: true, index: true },
     userName: { type: String, required: true, trim: true },
-    order: { type: Schema8.Types.ObjectId, ref: "Order" },
+    order: { type: Schema9.Types.ObjectId, ref: "Order" },
     rating: { type: Number, required: true, min: 1, max: 5 },
     title: { type: String, required: true, trim: true, maxlength: 120 },
     comment: { type: String, required: true, trim: true, maxlength: 2e3 },
@@ -1211,7 +1246,7 @@ var ReviewSchema = new Schema8(
   { timestamps: true }
 );
 ReviewSchema.index({ product: 1, user: 1 }, { unique: true });
-var Review = mongoose9.model("Review", ReviewSchema);
+var Review = mongoose10.model("Review", ReviewSchema);
 
 // server/routes/productRoutes.ts
 var router2 = Router2();
@@ -1257,8 +1292,8 @@ router2.get("/", async (req, res, next) => {
       }
     }
     if (category && category.trim()) {
-      if (mongoose10.Types.ObjectId.isValid(category)) {
-        filter.category = new mongoose10.Types.ObjectId(category);
+      if (mongoose11.Types.ObjectId.isValid(category)) {
+        filter.category = new mongoose11.Types.ObjectId(category);
       } else {
         const catDoc = await Category.findOne({ slug: category.toLowerCase().trim() });
         if (catDoc) {
@@ -1269,8 +1304,8 @@ router2.get("/", async (req, res, next) => {
       }
     }
     if (collection && collection.trim()) {
-      if (mongoose10.Types.ObjectId.isValid(collection)) {
-        filter.collections = new mongoose10.Types.ObjectId(collection);
+      if (mongoose11.Types.ObjectId.isValid(collection)) {
+        filter.collections = new mongoose11.Types.ObjectId(collection);
       } else {
         const colDoc = await Collection.findOne({ slug: collection.toLowerCase().trim() });
         if (colDoc) {
@@ -1405,7 +1440,7 @@ router2.get("/:slug", async (req, res, next) => {
   try {
     const slug = String(req.params.slug);
     let product = await Product.findOne({ slug: slug.toLowerCase(), status: "published" }).populate("category", "name slug description").populate("collections", "name slug subtitle");
-    if (!product && mongoose10.Types.ObjectId.isValid(slug)) {
+    if (!product && mongoose11.Types.ObjectId.isValid(slug)) {
       product = await Product.findOne({ _id: slug, status: "published" }).populate("category", "name slug description").populate("collections", "name slug subtitle");
     }
     if (!product) {
@@ -1504,8 +1539,8 @@ import { Router as Router3 } from "express";
 import { z as z3 } from "zod";
 
 // server/models/HomepageContent.ts
-import mongoose11, { Schema as Schema9 } from "mongoose";
-var HeroSlideSchema = new Schema9(
+import mongoose12, { Schema as Schema10 } from "mongoose";
+var HeroSlideSchema = new Schema10(
   {
     badgeText: { type: String, default: "EXCLUSIVE HOROLOGY" },
     title: { type: String, required: true },
@@ -1521,7 +1556,7 @@ var HeroSlideSchema = new Schema9(
   },
   { _id: true }
 );
-var HomepageContentSchema = new Schema9(
+var HomepageContentSchema = new Schema10(
   {
     key: { type: String, default: "default", unique: true },
     announcementBar: {
@@ -1614,11 +1649,11 @@ var HomepageContentSchema = new Schema9(
   },
   { timestamps: true }
 );
-var HomepageContent = mongoose11.model("HomepageContent", HomepageContentSchema);
+var HomepageContent = mongoose12.model("HomepageContent", HomepageContentSchema);
 
 // server/models/StoreSettings.ts
-import mongoose12, { Schema as Schema10 } from "mongoose";
-var StoreSettingsSchema = new Schema10(
+import mongoose13, { Schema as Schema11 } from "mongoose";
+var StoreSettingsSchema = new Schema11(
   {
     key: { type: String, default: "default", unique: true },
     storeName: { type: String, default: "BinFareedStore" },
@@ -1738,16 +1773,16 @@ var StoreSettingsSchema = new Schema10(
   },
   { timestamps: true }
 );
-var StoreSettings = mongoose12.model("StoreSettings", StoreSettingsSchema);
+var StoreSettings = mongoose13.model("StoreSettings", StoreSettingsSchema);
 
 // server/models/NewsletterSubscriber.ts
-import mongoose13, { Schema as Schema11 } from "mongoose";
-var NewsletterSubscriberSchema = new Schema11({
+import mongoose14, { Schema as Schema12 } from "mongoose";
+var NewsletterSubscriberSchema = new Schema12({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   isActive: { type: Boolean, default: true },
   subscribedAt: { type: Date, default: Date.now }
 });
-var NewsletterSubscriber = mongoose13.model(
+var NewsletterSubscriber = mongoose14.model(
   "NewsletterSubscriber",
   NewsletterSubscriberSchema
 );
@@ -1945,15 +1980,15 @@ var contentRoutes_default = router3;
 // server/routes/cartOrderRoutes.ts
 import { Router as Router4 } from "express";
 import crypto3 from "crypto";
-import mongoose17 from "mongoose";
+import mongoose18 from "mongoose";
 import { z as z4 } from "zod";
 
 // server/utils/push.ts
 import webpush from "web-push";
 
 // server/models/PushSubscription.ts
-import mongoose14, { Schema as Schema12 } from "mongoose";
-var PushSubscriptionSchema = new Schema12(
+import mongoose15, { Schema as Schema13 } from "mongoose";
+var PushSubscriptionSchema = new Schema13(
   {
     endpoint: { type: String, required: true, unique: true },
     keys: {
@@ -1961,12 +1996,12 @@ var PushSubscriptionSchema = new Schema12(
       auth: { type: String, required: true }
     },
     topics: { type: [String], enum: ["new-arrivals", "admin-orders"], default: ["new-arrivals"], index: true },
-    user: { type: Schema12.Types.ObjectId, ref: "User", default: null },
+    user: { type: Schema13.Types.ObjectId, ref: "User", default: null },
     userAgent: { type: String, default: "", maxlength: 300 }
   },
   { timestamps: true }
 );
-var PushSubscription = mongoose14.model("PushSubscription", PushSubscriptionSchema);
+var PushSubscription = mongoose15.model("PushSubscription", PushSubscriptionSchema);
 
 // server/utils/push.ts
 var PUBLIC = env.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || "";
@@ -2006,31 +2041,31 @@ async function sendToTopic(topic, payload) {
 }
 
 // server/models/Cart.ts
-import mongoose15, { Schema as Schema13 } from "mongoose";
-var CartItemSchema = new Schema13(
+import mongoose16, { Schema as Schema14 } from "mongoose";
+var CartItemSchema = new Schema14(
   {
-    product: { type: Schema13.Types.ObjectId, ref: "Product", required: true },
+    product: { type: Schema14.Types.ObjectId, ref: "Product", required: true },
     variantSku: { type: String },
     quantity: { type: Number, required: true, min: 1, max: 20 }
   },
   { _id: false }
 );
-var CartSchema = new Schema13(
+var CartSchema = new Schema14(
   {
-    user: { type: Schema13.Types.ObjectId, ref: "User", sparse: true, index: true },
+    user: { type: Schema14.Types.ObjectId, ref: "User", sparse: true, index: true },
     sessionId: { type: String, sparse: true, index: true },
     items: { type: [CartItemSchema], default: [] },
     couponCode: { type: String, uppercase: true, trim: true }
   },
   { timestamps: true }
 );
-var Cart = mongoose15.model("Cart", CartSchema);
+var Cart = mongoose16.model("Cart", CartSchema);
 
 // server/models/StockMovement.ts
-import mongoose16, { Schema as Schema14 } from "mongoose";
-var StockMovementSchema = new Schema14(
+import mongoose17, { Schema as Schema15 } from "mongoose";
+var StockMovementSchema = new Schema15(
   {
-    product: { type: Schema14.Types.ObjectId, ref: "Product", required: true, index: true },
+    product: { type: Schema15.Types.ObjectId, ref: "Product", required: true, index: true },
     sku: { type: String, required: true, index: true },
     variantSku: { type: String },
     type: {
@@ -2043,14 +2078,14 @@ var StockMovementSchema = new Schema14(
     previousStock: { type: Number, required: true, min: 0 },
     newStock: { type: Number, required: true, min: 0 },
     reason: { type: String, required: true, trim: true },
-    orderId: { type: Schema14.Types.ObjectId, ref: "Order" },
+    orderId: { type: Schema15.Types.ObjectId, ref: "Order" },
     orderNumber: { type: String },
-    performedBy: { type: Schema14.Types.ObjectId, ref: "User" },
+    performedBy: { type: Schema15.Types.ObjectId, ref: "User" },
     performedByName: { type: String, default: "System" }
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
-var StockMovement = mongoose16.model("StockMovement", StockMovementSchema);
+var StockMovement = mongoose17.model("StockMovement", StockMovementSchema);
 
 // server/routes/cartOrderRoutes.ts
 var router4 = Router4();
@@ -2101,7 +2136,7 @@ router4.post(
       const validatedItems = [];
       let subtotal = 0;
       for (const reqItem of data.items) {
-        if (!mongoose17.Types.ObjectId.isValid(reqItem.productId)) continue;
+        if (!mongoose18.Types.ObjectId.isValid(reqItem.productId)) continue;
         const product = await Product.findOne({
           _id: reqItem.productId,
           status: "published"
@@ -2184,7 +2219,7 @@ router4.post(
           {
             user: req.user._id,
             items: validatedItems.filter((i) => i.quantity > 0).map((i) => ({
-              product: new mongoose17.Types.ObjectId(i.productId),
+              product: new mongoose18.Types.ObjectId(i.productId),
               variantSku: i.variantSku,
               quantity: i.quantity
             })),
@@ -2296,7 +2331,7 @@ router4.post(
       const orderItems = [];
       let subtotal = 0;
       for (const item of data.items) {
-        if (!mongoose17.Types.ObjectId.isValid(item.productId)) {
+        if (!mongoose18.Types.ObjectId.isValid(item.productId)) {
           throw new AppError("Invalid product identifier in cart.", 400);
         }
         let updatedProduct = null;
@@ -2651,12 +2686,12 @@ import { v2 as cloudinary } from "cloudinary";
 import { z as z5 } from "zod";
 
 // server/models/Counter.ts
-import mongoose18, { Schema as Schema15 } from "mongoose";
-var CounterSchema = new Schema15({
+import mongoose19, { Schema as Schema16 } from "mongoose";
+var CounterSchema = new Schema16({
   _id: { type: String, required: true },
   seq: { type: Number, required: true, default: 0 }
 });
-var Counter = mongoose18.model("Counter", CounterSchema);
+var Counter = mongoose19.model("Counter", CounterSchema);
 async function nextSequence(name) {
   const doc = await Counter.findOneAndUpdate(
     { _id: name },
@@ -3054,6 +3089,84 @@ router5.delete("/products/:id", async (req, res, next) => {
     res.json({
       success: true,
       message: permanent ? "Product permanently deleted." : "Product archived."
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+router5.post("/products/bulk-import", async (req, res, next) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      throw new AppError("An array of products is required for bulk import.", 400);
+    }
+    const createdList = [];
+    const errorsList = [];
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
+      try {
+        if (!p.name || !p.price && p.price !== 0) {
+          errorsList.push({ row: i + 1, error: "Name and price are required." });
+          continue;
+        }
+        const sku = p.sku?.trim() || `BF-${Date.now().toString().slice(-6)}-${i + 1}`;
+        let slug = (p.slug || p.name).toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+        const existing = await Product.findOne({ slug });
+        if (existing) {
+          slug = `${slug}-${Date.now().toString().slice(-4)}-${i + 1}`;
+        }
+        const newDoc = await Product.create({
+          name: p.name.trim(),
+          slug,
+          brand: p.brand?.trim() || "BinFareed Atelier",
+          model: p.model?.trim() || p.name.trim(),
+          sku,
+          gender: p.gender === "Women" ? "Women" : p.gender === "Unisex" ? "Unisex" : "Men",
+          price: Number(p.price),
+          salePrice: p.salePrice ? Number(p.salePrice) : null,
+          costPrice: p.costPrice ? Number(p.costPrice) : Math.round(Number(p.price) * 0.6),
+          shortDescription: p.shortDescription?.trim() || `${p.name} fine luxury timepiece.`,
+          description: p.description?.trim() || p.shortDescription?.trim() || `${p.name} fine luxury timepiece.`,
+          mainImage: p.mainImage?.trim() || "/brand/logo-mark.png",
+          images: Array.isArray(p.images) ? p.images : [],
+          stock: Number(p.stock !== void 0 ? p.stock : 5),
+          lowStockThreshold: 2,
+          status: p.status === "draft" ? "draft" : "published",
+          featured: Boolean(p.featured),
+          bestSeller: Boolean(p.bestSeller),
+          specifications: {
+            movement: p.movement || "Automatic Horology",
+            caseMaterial: p.caseMaterial || "316L Stainless Steel",
+            caseDiameter: p.caseDiameter || "41mm",
+            caseThickness: p.caseThickness || "11mm",
+            strapMaterial: p.strapMaterial || "Solid Stainless Steel",
+            strapWidth: p.strapWidth || "20mm",
+            dialColor: p.dialColor || "Sunburst Emerald",
+            crystal: p.crystal || "Anti-Reflective Sapphire",
+            waterResistance: p.waterResistance || "5 ATM / 50m",
+            warranty: "Official Authenticity Guarantee",
+            origin: p.origin || "Swiss Assembled / Japanese Movement"
+          },
+          collections: []
+        });
+        createdList.push(newDoc);
+      } catch (err) {
+        errorsList.push({ row: i + 1, error: err.message || String(err) });
+      }
+    }
+    await logAudit({
+      user: req.user,
+      action: "BULK_PRODUCT_IMPORT",
+      entityType: "product",
+      details: `Bulk imported ${createdList.length} products. ${errorsList.length} failed.`,
+      ipAddress: req.ip
+    });
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${createdList.length} products.${errorsList.length > 0 ? ` (${errorsList.length} failed)` : ""}`,
+      createdCount: createdList.length,
+      created: createdList,
+      errors: errorsList
     });
   } catch (err) {
     next(err);
@@ -4139,11 +4252,27 @@ router5.post(
         });
         return;
       }
-      const localUrl = `/uploads/${req.file.filename}`;
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        await Media.findOneAndUpdate(
+          { filename: req.file.filename },
+          {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            mimetype: req.file.mimetype || "image/webp",
+            size: req.file.size,
+            data: fileBuffer
+          },
+          { upsert: true, new: true }
+        );
+      } catch (dbErr) {
+        console.error("[Media DB Storage Error]:", dbErr);
+      }
+      const localUrl = `/api/uploads/${req.file.filename}`;
       res.status(201).json({
         success: true,
         url: localUrl,
-        provider: "local"
+        provider: "mongodb"
       });
     } catch (err) {
       next(err);
@@ -4260,8 +4389,8 @@ app.get(["/api/health", "/health"], async (_req, res) => {
     success: true,
     service: "BinFareedStore API",
     status: "operational",
-    dbState: mongoose19.connection.readyState,
-    dbConnected: mongoose19.connection.readyState === 1,
+    dbState: mongoose20.connection.readyState,
+    dbConnected: mongoose20.connection.readyState === 1,
     dbError: lastDbError,
     dbUri: maskedUri,
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
@@ -4274,7 +4403,7 @@ app.get(["/api/test-db", "/test-db"], async (_req, res) => {
     res.json({
       success: true,
       timeMs: Date.now() - start,
-      dbState: mongoose19.connection.readyState,
+      dbState: mongoose20.connection.readyState,
       isMemory: result.isMemory,
       message: "MongoDB Atlas connected successfully from Vercel!"
     });
@@ -4282,7 +4411,7 @@ app.get(["/api/test-db", "/test-db"], async (_req, res) => {
     res.status(500).json({
       success: false,
       timeMs: Date.now() - start,
-      dbState: mongoose19.connection.readyState,
+      dbState: mongoose20.connection.readyState,
       errorName: err.name,
       errorMessage: err.message
     });
@@ -4292,7 +4421,7 @@ app.use(async (req, res, next) => {
   if (req.path === "/api/health" || req.path === "/health" || req.path === "/api/test-db" || req.path === "/test-db") {
     return next();
   }
-  if (mongoose19.connection.readyState !== 1) {
+  if (mongoose20.connection.readyState !== 1) {
     try {
       await connectDatabase();
       lastDbError = null;
@@ -4314,6 +4443,31 @@ app.use(cookieParser());
 app.use(sanitizeNoSqlInjection);
 app.use(csrfProtection);
 app.use(["/api", "/"], apiRateLimiter);
+app.get(["/uploads/:filename", "/api/uploads/:filename"], async (req, res, next) => {
+  try {
+    const filename = path3.basename(req.params.filename);
+    try {
+      const media = await Media.findOne({ filename });
+      if (media && media.data) {
+        res.setHeader("Content-Type", media.mimetype || "image/webp");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return res.send(media.data);
+      }
+    } catch {
+    }
+    const localPath = path3.resolve(process.cwd(), "uploads", filename);
+    if (fs2.existsSync(localPath)) {
+      return res.sendFile(localPath);
+    }
+    const tmpPath = path3.join("/tmp", "uploads", filename);
+    if (fs2.existsSync(tmpPath)) {
+      return res.sendFile(tmpPath);
+    }
+    return res.status(404).send("Image not found");
+  } catch (err) {
+    next(err);
+  }
+});
 app.use("/uploads", express.static(path3.resolve(process.cwd(), "uploads")));
 app.get(["/sitemap.xml", "/api/sitemap.xml"], handleSitemap);
 app.get(["/robots.txt", "/api/robots.txt"], handleRobots);

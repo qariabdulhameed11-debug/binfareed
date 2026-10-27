@@ -3,7 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs';
 import mongoose from 'mongoose';
+import { Media } from './models/Media';
 import { env } from './config/env';
 import { connectDatabase } from './config/db';
 import {
@@ -131,7 +133,38 @@ app.use(sanitizeNoSqlInjection);
 app.use(csrfProtection);
 app.use(['/api', '/'], apiRateLimiter);
 
-// Serve local uploaded images
+// Serve uploaded images (MongoDB-persisted + local disk fallback)
+app.get(['/uploads/:filename', '/api/uploads/:filename'], async (req, res, next) => {
+  try {
+    const filename = path.basename(req.params.filename);
+
+    // 1. Check MongoDB Media collection (persistent on Vercel)
+    try {
+      const media = await Media.findOne({ filename });
+      if (media && media.data) {
+        res.setHeader('Content-Type', media.mimetype || 'image/webp');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.send(media.data);
+      }
+    } catch {}
+
+    // 2. Check local disk in uploads/
+    const localPath = path.resolve(process.cwd(), 'uploads', filename);
+    if (fs.existsSync(localPath)) {
+      return res.sendFile(localPath);
+    }
+
+    // 3. Check /tmp/uploads on Vercel
+    const tmpPath = path.join('/tmp', 'uploads', filename);
+    if (fs.existsSync(tmpPath)) {
+      return res.sendFile(tmpPath);
+    }
+
+    return res.status(404).send('Image not found');
+  } catch (err) {
+    next(err);
+  }
+});
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // SEO Sitemap & Robots

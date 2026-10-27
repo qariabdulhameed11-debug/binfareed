@@ -14,7 +14,7 @@ import {
 import { useStore } from '../context/StoreContext';
 
 /** "Install App" — native prompt on Android/desktop Chrome/Edge, instructions on iPhone. */
-export const InstallAppButton: React.FC<{ className?: string; label?: string }> = ({ className = '', label = 'Install App' }) => {
+export const InstallAppButton: React.FC<{ className?: string; label?: string; appName?: string }> = ({ className = '', label = 'Install App', appName = 'BinFareed' }) => {
   const [available, setAvailable] = useState(canPromptInstall());
   const [installed, setInstalled] = useState(() => isStandalone());
   const [iosHelp, setIosHelp] = useState(false);
@@ -67,7 +67,7 @@ export const InstallAppButton: React.FC<{ className?: string; label?: string }> 
                 Choose <b>Add to Home Screen</b>.
               </li>
               <li>
-                Tap <b>Add</b>. The BinFareed app appears on your home screen.
+                Tap <b>Add</b>. The {appName} appears on your home screen.
               </li>
             </ol>
           </div>

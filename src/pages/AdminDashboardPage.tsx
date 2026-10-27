@@ -37,6 +37,8 @@ import { ChangePasswordPanel } from '../components/admin/ChangePasswordPanel';
 import { NewOrderNotifier } from '../components/admin/NewOrderNotifier';
 import { AdminLoginPage } from './AdminLoginPage';
 import { WhatsAppComposer } from '../components/admin/WhatsAppComposer';
+import { PhotoUploadBox } from '../components/admin/PhotoUploadBox';
+import { ProductGalleryUploader } from '../components/admin/ProductGalleryUploader';
 import { suggestedTemplate } from '../lib/whatsapp';
 import { compressImage, formatBytes, type CompressResult } from '../lib/compressImage';
 import { useStore } from '../context/StoreContext';
@@ -101,6 +103,12 @@ export const AdminDashboardPage: React.FC = () => {
   const [productStatusFilter, setProductStatusFilter] = useState('all');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  // Bulk product import state
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [bulkParsedProducts, setBulkParsedProducts] = useState<any[]>([]);
+  const [bulkImportLoading, setBulkImportLoading] = useState(false);
+  const [bulkImportError, setBulkImportError] = useState<string | null>(null);
+  const [bulkImportSuccess, setBulkImportSuccess] = useState<string | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   // Inventory state
@@ -388,6 +396,118 @@ export const AdminDashboardPage: React.FC = () => {
       }
     } catch (err: any) {
       addToast(err.message || 'Bulk action failed.', 'error');
+    }
+  };
+
+  const downloadCsvTemplate = () => {
+    const headers = 'name,brand,model,sku,price,salePrice,stock,gender,shortDescription,mainImage';
+    const sample1 = 'Santos Grand Roman,Cartier,Santos De Cartier,BF-SAN-01,75000,68000,8,Men,Iconic square bezel luxury watch,/brand/logo-mark.png';
+    const sample2 = 'Submariner Date Emerald,Rolex,Submariner 126610LV,BF-SUB-02,95000,,5,Men,Professional divers watch in emerald ceramic,/brand/logo-mark.png';
+    const csvContent = `data:text/csv;charset=utf-8,${encodeURIComponent(`${headers}\n${sample1}\n${sample2}\n`)}`;
+    const link = document.createElement('a');
+    link.setAttribute('href', csvContent);
+    link.setAttribute('download', 'binfareed_products_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setBulkImportError(null);
+    setBulkImportSuccess(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      try {
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            setBulkParsedProducts(parsed);
+          } else {
+            setBulkImportError('JSON must be an array of product objects.');
+          }
+          return;
+        }
+
+        // CSV parsing
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        if (lines.length < 2) {
+          setBulkImportError('CSV file must have a header row and at least 1 product row.');
+          return;
+        }
+
+        const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
+        const productsList: any[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const row = lines[i];
+          const regex = /(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g;
+          const values: string[] = [];
+          let match: RegExpExecArray | null;
+          while ((match = regex.exec(row)) !== null && values.length < headers.length) {
+            let val = match[1] || '';
+            if (val.startsWith('"') && val.endsWith('"')) {
+              val = val.slice(1, -1).replace(/""/g, '"');
+            }
+            values.push(val.trim());
+          }
+
+          if (values.length > 0 && values[0]) {
+            const item: Record<string, any> = {};
+            headers.forEach((h, idx) => {
+              item[h] = values[idx] || '';
+            });
+            productsList.push(item);
+          }
+        }
+
+        if (productsList.length === 0) {
+          setBulkImportError('Could not parse any valid products from the CSV file.');
+        } else {
+          setBulkParsedProducts(productsList);
+        }
+      } catch (err: any) {
+        setBulkImportError(`Error reading file: ${err.message || 'Invalid format'}`);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
+  const handleExecuteBulkImport = async () => {
+    if (bulkParsedProducts.length === 0) return;
+    setBulkImportLoading(true);
+    setBulkImportError(null);
+    setBulkImportSuccess(null);
+
+    try {
+      const res = await apiRequest('/api/admin/products/bulk-import', {
+        method: 'POST',
+        body: JSON.stringify({ products: bulkParsedProducts }),
+      });
+
+      if (res.success) {
+        setBulkImportSuccess(res.message);
+        addToast(res.message, 'success');
+        setBulkParsedProducts([]);
+        await loadTabContent();
+        await refreshStorefront();
+        setTimeout(() => {
+          setBulkImportOpen(false);
+          setBulkImportSuccess(null);
+        }, 1500);
+      }
+    } catch (err: any) {
+      setBulkImportError(err.message || 'Bulk import failed.');
+    } finally {
+      setBulkImportLoading(false);
     }
   };
 
@@ -799,6 +919,11 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* Footer info & Profile */}
         <div className="p-3.5 border-t border-white/[0.08] bg-black/20 space-y-2">
+          <InstallAppButton
+            label="Install Admin Console"
+            appName="BinFareed Admin Console"
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl border border-[#C5A059]/40 hover:border-[#C5A059] bg-[#C5A059]/10 text-xs font-semibold text-[#FAF8F5] transition-all"
+          />
           <Link
             to="/"
             target="_blank"
@@ -2726,6 +2851,142 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* ======================================= */}
+      {/* BULK IMPORT PRODUCTS MODAL (CSV / JSON) */}
+      {/* ======================================= */}
+      {bulkImportOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-2xl p-6 text-[#0D0D0D] shadow-2xl border border-[#C5A059]/30 space-y-5 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-black/8 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#0D0D0D] flex items-center justify-center text-[#C5A059]">
+                  <Upload className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="font-serif-luxury text-2xl font-bold">Bulk Import Multiple Watches</h2>
+                  <p className="text-xs text-neutral-500">Upload multiple products simultaneously via CSV or JSON file</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBulkImportOpen(false)}
+                className="p-1.5 text-neutral-400 hover:text-black rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+              {/* Download sample CSV button */}
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-black/8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <p className="font-bold text-[#0D0D0D]">Need the CSV format template?</p>
+                  <p className="text-neutral-500 text-[11px]">Download our ready-made sample template containing all required columns.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadCsvTemplate}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-neutral-100 border border-neutral-300 text-[#0D0D0D] font-bold text-xs uppercase tracking-wider rounded-lg transition-colors shrink-0 shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <span>Download Sample CSV</span>
+                </button>
+              </div>
+
+              {/* Upload File Zone */}
+              <div className="border-2 border-dashed border-neutral-300 hover:border-[#C5A059] rounded-xl p-6 text-center bg-white transition-colors">
+                <Upload className="w-8 h-8 text-neutral-400 mx-auto mb-2" />
+                <p className="font-bold text-sm text-[#0D0D0D]">Choose CSV or JSON File</p>
+                <p className="text-[11px] text-neutral-500 mb-4">Columns: name, brand, model, sku, price, salePrice, stock, gender, shortDescription, mainImage</p>
+                <label className="px-5 py-2.5 bg-[#0D0D0D] hover:bg-[#C5A059] text-[#FAF8F5] hover:text-[#0D0D0D] rounded-lg cursor-pointer text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 transition-colors shadow-sm">
+                  <span>Select File from Computer</span>
+                  <input
+                    type="file"
+                    accept=".csv,application/json,text/csv"
+                    onChange={handleBulkFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Errors or Success alert */}
+              {bulkImportError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{bulkImportError}</span>
+                </div>
+              )}
+              {bulkImportSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{bulkImportSuccess}</span>
+                </div>
+              )}
+
+              {/* Parsed products preview table */}
+              {bulkParsedProducts.length > 0 && (
+                <div className="space-y-2">
+                  <p className="font-bold text-xs text-neutral-700 flex items-center justify-between">
+                    <span>Detected Products ({bulkParsedProducts.length})</span>
+                    <span className="text-[11px] text-emerald-700 font-semibold">Ready to import</span>
+                  </p>
+                  <div className="border border-neutral-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead>
+                        <tr className="bg-neutral-100 text-neutral-700 font-bold border-b border-neutral-200">
+                          <th className="p-2">#</th>
+                          <th className="p-2">Name</th>
+                          <th className="p-2">Brand</th>
+                          <th className="p-2">SKU</th>
+                          <th className="p-2">Price</th>
+                          <th className="p-2">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {bulkParsedProducts.slice(0, 10).map((bp, bidx) => (
+                          <tr key={bidx} className="hover:bg-neutral-50">
+                            <td className="p-2 text-neutral-400">{bidx + 1}</td>
+                            <td className="p-2 font-semibold text-neutral-900 truncate max-w-[150px]">{bp.name}</td>
+                            <td className="p-2 text-neutral-600">{bp.brand || 'BinFareed'}</td>
+                            <td className="p-2 font-mono-code">{bp.sku || 'Auto'}</td>
+                            <td className="p-2 font-semibold">{formatPrice(Number(bp.price))}</td>
+                            <td className="p-2">{bp.stock || 5}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {bulkParsedProducts.length > 10 && (
+                    <p className="text-[11px] text-neutral-500 text-right">
+                      Showing first 10 of {bulkParsedProducts.length} items. All will be imported.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/8">
+              <button
+                type="button"
+                onClick={() => setBulkImportOpen(false)}
+                className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={bulkParsedProducts.length === 0 || bulkImportLoading}
+                onClick={handleExecuteBulkImport}
+                className="px-6 py-2.5 bg-[#C5A059] hover:bg-[#DFBD78] text-[#0D0D0D] font-bold text-xs uppercase tracking-wider rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2 shadow-sm"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{bulkImportLoading ? 'Importing…' : `Import ${bulkParsedProducts.length} Watches`}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================= */}
       {/* PRODUCT CREATE / EDIT MODAL */}
       {/* ======================================= */}
       {isProductModalOpen && editingProduct && (
@@ -2862,66 +3123,21 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Image URL + Upload */}
-              <div className="space-y-2">
-                <label className="font-bold block">Primary Watch Photograph (URL or Upload) *</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={editingProduct.mainImage || ''}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, mainImage: e.target.value })
-                    }
-                    className="flex-1 px-3 py-2 border border-neutral-300 rounded"
-                  />
-                  <label
-                    className={`px-4 py-2 bg-[#1A1A1E] text-[#FAF8F5] rounded cursor-pointer inline-flex items-center gap-1.5 font-semibold ${
-                      uploadStatus?.phase === 'compressing' || uploadStatus?.phase === 'uploading' ? 'opacity-60 pointer-events-none' : ''
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>
-                      {uploadStatus?.phase === 'compressing'
-                        ? 'Compressing…'
-                        : uploadStatus?.phase === 'uploading'
-                        ? 'Uploading…'
-                        : 'Upload File'}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/avif"
-                      onChange={handleImageFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="inline-flex items-center gap-2 text-[11px] text-neutral-600 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={compressPhotos}
-                      onChange={(e) => setCompressPhotos(e.target.checked)}
-                    />
-                    Compress photo before upload (recommended — max 1600px, WebP)
-                  </label>
-                  {uploadStatus?.result && uploadStatus.phase === 'done' && (
-                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
-                      {uploadStatus.result.compressed
-                        ? `${formatBytes(uploadStatus.result.originalBytes)} → ${formatBytes(uploadStatus.result.compressedBytes)} (−${Math.round(
-                            (1 - uploadStatus.result.compressedBytes / uploadStatus.result.originalBytes) * 100
-                          )}%) · ${uploadStatus.result.width}×${uploadStatus.result.height}`
-                        : 'Already optimised — uploaded as is'}
-                    </span>
-                  )}
-                </div>
-                {editingProduct.mainImage && (
-                  <img
-                    src={editingProduct.mainImage}
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded-lg border border-black/10"
-                  />
-                )}
+              {/* Primary Photograph & Multi-Photo Gallery */}
+              <div className="space-y-4 p-4 rounded-xl bg-[#FAF8F5] border border-black/8">
+                <PhotoUploadBox
+                  value={editingProduct.mainImage || ''}
+                  onChange={(url) => setEditingProduct({ ...editingProduct, mainImage: url })}
+                  label="Primary Watch Photograph *"
+                  hint="Upload front dial shot (PNG, JPG, or WebP). Displayed on catalog cards and checkout."
+                />
+
+                <ProductGalleryUploader
+                  images={editingProduct.images || []}
+                  mainImage={editingProduct.mainImage || ''}
+                  onChangeImages={(imgs) => setEditingProduct({ ...editingProduct, images: imgs })}
+                  onSetMainImage={(url) => setEditingProduct({ ...editingProduct, mainImage: url })}
+                />
               </div>
 
               {/* Specifications */}

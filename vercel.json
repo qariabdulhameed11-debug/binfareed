@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/api", "destination": "/api" },
+    { "source": "/uploads/(.*)", "destination": "/api" },
     { "source": "/sitemap.xml", "destination": "/api" },
     { "source": "/robots.txt", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }

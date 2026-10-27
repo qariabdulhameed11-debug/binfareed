@@ -17,6 +17,7 @@ import { HomepageContent } from '../models/HomepageContent';
 import { StoreSettings } from '../models/StoreSettings';
 import { AuditLog } from '../models/AuditLog';
 import { Review } from '../models/Review';
+import { Media } from '../models/Media';
 import { slugify, generateSku, logAudit, isApprovedOrderNumber, formatApprovedOrderNumber } from '../utils/helpers';
 import { nextSequence } from '../models/Counter';
 import { PushSubscription } from '../models/PushSubscription';
@@ -510,6 +511,98 @@ router.delete('/products/:id', async (req: Request, res: Response, next: NextFun
     res.json({
       success: true,
       message: permanent ? 'Product permanently deleted.' : 'Product archived.',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/products/bulk-import — Bulk product creation via CSV/JSON
+router.post('/products/bulk-import', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      throw new AppError('An array of products is required for bulk import.', 400);
+    }
+
+    const createdList = [];
+    const errorsList = [];
+
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
+      try {
+        if (!p.name || (!p.price && p.price !== 0)) {
+          errorsList.push({ row: i + 1, error: 'Name and price are required.' });
+          continue;
+        }
+
+        const sku = p.sku?.trim() || `BF-${Date.now().toString().slice(-6)}-${i + 1}`;
+        let slug = (p.slug || p.name)
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+
+        const existing = await Product.findOne({ slug });
+        if (existing) {
+          slug = `${slug}-${Date.now().toString().slice(-4)}-${i + 1}`;
+        }
+
+        const newDoc = await Product.create({
+          name: p.name.trim(),
+          slug,
+          brand: p.brand?.trim() || 'BinFareed Atelier',
+          model: p.model?.trim() || p.name.trim(),
+          sku,
+          gender: p.gender === 'Women' ? 'Women' : p.gender === 'Unisex' ? 'Unisex' : 'Men',
+          price: Number(p.price),
+          salePrice: p.salePrice ? Number(p.salePrice) : null,
+          costPrice: p.costPrice ? Number(p.costPrice) : Math.round(Number(p.price) * 0.6),
+          shortDescription: p.shortDescription?.trim() || `${p.name} fine luxury timepiece.`,
+          description: p.description?.trim() || p.shortDescription?.trim() || `${p.name} fine luxury timepiece.`,
+          mainImage: p.mainImage?.trim() || '/brand/logo-mark.png',
+          images: Array.isArray(p.images) ? p.images : [],
+          stock: Number(p.stock !== undefined ? p.stock : 5),
+          lowStockThreshold: 2,
+          status: p.status === 'draft' ? 'draft' : 'published',
+          featured: Boolean(p.featured),
+          bestSeller: Boolean(p.bestSeller),
+          specifications: {
+            movement: p.movement || 'Automatic Horology',
+            caseMaterial: p.caseMaterial || '316L Stainless Steel',
+            caseDiameter: p.caseDiameter || '41mm',
+            caseThickness: p.caseThickness || '11mm',
+            strapMaterial: p.strapMaterial || 'Solid Stainless Steel',
+            strapWidth: p.strapWidth || '20mm',
+            dialColor: p.dialColor || 'Sunburst Emerald',
+            crystal: p.crystal || 'Anti-Reflective Sapphire',
+            waterResistance: p.waterResistance || '5 ATM / 50m',
+            warranty: 'Official Authenticity Guarantee',
+            origin: p.origin || 'Swiss Assembled / Japanese Movement',
+          },
+          collections: [],
+        });
+
+        createdList.push(newDoc);
+      } catch (err) {
+        errorsList.push({ row: i + 1, error: err.message || String(err) });
+      }
+    }
+
+    await logAudit({
+      user: req.user,
+      action: 'BULK_PRODUCT_IMPORT',
+      entityType: 'product',
+      details: `Bulk imported ${createdList.length} products. ${errorsList.length} failed.`,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${createdList.length} products.${errorsList.length > 0 ? ` (${errorsList.length} failed)` : ''}`,
+      createdCount: createdList.length,
+      created: createdList,
+      errors: errorsList,
     });
   } catch (err) {
     next(err);
@@ -1839,11 +1932,29 @@ router.post(
         return;
       }
 
-      const localUrl = `/uploads/${req.file.filename}`;
+      // Save to MongoDB Media collection for 100% serverless persistence across Vercel
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        await Media.findOneAndUpdate(
+          { filename: req.file.filename },
+          {
+            filename: req.file.filename,
+            originalName: req.file.originalname,
+            mimetype: req.file.mimetype || 'image/webp',
+            size: req.file.size,
+            data: fileBuffer,
+          },
+          { upsert: true, new: true }
+        );
+      } catch (dbErr) {
+        console.error('[Media DB Storage Error]:', dbErr);
+      }
+
+      const localUrl = `/api/uploads/${req.file.filename}`;
       res.status(201).json({
         success: true,
         url: localUrl,
-        provider: 'local',
+        provider: 'mongodb',
       });
     } catch (err) {
       next(err);

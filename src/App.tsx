@@ -81,6 +81,20 @@ const AppShell: React.FC = () => {
     return () => meta.remove();
   }, [isAdminRoute]);
 
+  // Dynamic PWA manifest: Customer Storefront (site.webmanifest) vs Admin Atelier (admin.webmanifest)
+  useEffect(() => {
+    let manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    if (!manifestLink) {
+      manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      document.head.appendChild(manifestLink);
+    }
+    const targetHref = isAdminRoute ? '/admin.webmanifest' : '/site.webmanifest';
+    if (manifestLink.getAttribute('href') !== targetHref) {
+      manifestLink.setAttribute('href', targetHref);
+    }
+  }, [isAdminRoute]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#0D0D0D]">
       {!isAdminRoute && (

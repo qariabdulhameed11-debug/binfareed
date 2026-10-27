@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, ShieldCheck } from 'lucide-react';
+import { InstallAppButton } from '../components/AppActions';
 import { useStore } from '../context/StoreContext';
 import { apiRequest } from '../lib/api';
 
@@ -100,6 +101,14 @@ export const AdminLoginPage: React.FC = () => {
           <Lock className="w-4 h-4" />
           {loading ? 'Verifying…' : 'Sign In'}
         </button>
+
+        <div className="pt-2 text-center">
+          <InstallAppButton
+            label="Install Admin Console App"
+            appName="BinFareed Admin Console"
+            className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-[#C5A059]/40 hover:border-[#C5A059] bg-[#C5A059]/10 text-[#FAF8F5] text-xs uppercase tracking-wider font-semibold transition-colors"
+          />
+        </div>
       </form>
     </div>
   );
